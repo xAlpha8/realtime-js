@@ -150,13 +150,20 @@ class RealtimeConnection {
         codec = config.audioCodec;
         if (codec !== "default") {
           // @ts-ignore
-          offer.sdp = this._sdpFilterCodec("audio", codec, offer.sdp);
+          const modifiedSDP = this._sdpFilterCodec("audio", codec, offer.sdp);
+          offer = new RTCSessionDescription({
+            type: offer.type,
+            sdp: modifiedSDP,
+          });
         }
-
         codec = config.videoCodec;
         if (codec !== "default") {
           // @ts-ignore
-          offer.sdp = this._sdpFilterCodec("video", codec, offer.sdp);
+          const modifiedSDP = this._sdpFilterCodec("video", codec, offer.sdp);
+          offer = new RTCSessionDescription({
+            type: offer.type,
+            sdp: modifiedSDP,
+          });
         }
 
         console.log(offer.sdp);
