@@ -48,8 +48,8 @@ function App() {
 
   const { options, setters, values, dump } = useConfig(configDefault);
   const { audioOptions, videoOptions } = options;
-  const { setAudioInput, setVideoInput, setOfferUrl } = setters;
-  const { audioInput, videoInput, offerUrl } = values;
+  const { setAudioInput, setVideoInput, setOfferUrl, setFunctionUrl } = setters;
+  const { audioInput, videoInput, offerUrl, functionUrl } = values;
 
   const dumpConfigAndRun = () => {
     const configDump = dump();
@@ -94,6 +94,15 @@ function App() {
               value={offerUrl}
               onChange={(e) => setOfferUrl(e.target.value)}
               placeholder="Enter Offer URL"
+            />
+          </div>
+          <div>
+            <h2>Function URL:</h2>
+            <input
+              type="text"
+              value={functionUrl}
+              onChange={(e) => setFunctionUrl(e.target.value)}
+              placeholder="Enter Function URL"
             />
           </div>
           <div>
