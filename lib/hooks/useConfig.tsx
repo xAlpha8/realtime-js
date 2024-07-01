@@ -8,9 +8,12 @@ const useConfig = (config: Partial<Config>) => {
   const videoResolutionOptions = [
     "default",
     "320x240",
+    "512x512",
     "640x480",
     "960x540",
     "1280x720",
+    "1920x1080",
+    "3840x2160",
   ];
   const videoTransformOptions = ["none", "edges", "cartoon", "rotate"];
   const audioCodecOptions = [
