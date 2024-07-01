@@ -8,15 +8,19 @@ import { RtAudioVisualizer } from "../lib/components/rtaudiovisualizer";
 function RealtimeContainer({ config }: { config: Config }) {
   const { connection, isConnected } = useRealtime(config);
   useEffect(() => {
-    connection.connect()
-  }, [])
+    connection.connect();
+  }, []);
   return (
     <div>
       {isConnected ? (
         <>
           <RtVideo rtConnection={connection} />
           <RtAudio rtConnection={connection} />
-          <RtAudioVisualizer rtConnection={connection} height={100} width={100}/>
+          <RtAudioVisualizer
+            rtConnection={connection}
+            height={100}
+            width={100}
+          />
           <RtChat rtConnection={connection} />
         </>
       ) : (
