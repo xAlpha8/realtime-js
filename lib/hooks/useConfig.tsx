@@ -49,10 +49,15 @@ const useConfig = (config: Partial<Config>) => {
   const [dataParameters, setDataParameters] = useState(
     config.dataParameters || {}
   );
-  const [isScreenShareEnabled, setIsScreenShareEnabled] = useState(config.isScreenShareEnabled || false)
+  const [isScreenShareEnabled, setIsScreenShareEnabled] = useState(
+    config.isScreenShareEnabled || false
+  );
 
   useEffect(() => {
-    const populateOptions = (devices: MediaDeviceInfo[], kind: string): DeviceOptions[] => {
+    const populateOptions = (
+      devices: MediaDeviceInfo[],
+      kind: string
+    ): DeviceOptions[] => {
       var options = devices
         .filter((device) => device.kind === kind)
         .map((device, index) => ({
@@ -75,12 +80,12 @@ const useConfig = (config: Partial<Config>) => {
 
   useEffect(() => {
     if (audioOptions.length > 0) {
-      setAudioInput(audioOptions[0].value)
+      setAudioInput(audioOptions[0].value);
     }
     if (videoOptions.length > 0) {
-      setVideoInput(videoOptions[0].value)
+      setVideoInput(videoOptions[0].value);
     }
-  }, [audioOptions, videoOptions])
+  }, [audioOptions, videoOptions]);
 
   const dump = (): Config => {
     const configDump = ConfigSchema.parse({
@@ -98,7 +103,7 @@ const useConfig = (config: Partial<Config>) => {
       isScreenShareEnabled: isScreenShareEnabled,
       useStun: false,
       dataParameters: dataParameters,
-    })
+    });
     return configDump;
   };
 
@@ -125,6 +130,7 @@ const useConfig = (config: Partial<Config>) => {
       setAudioInput,
       setIsDataEnabled,
       setDataParameters,
+      setIsScreenShareEnabled,
     },
     values: {
       functionUrl,
@@ -139,9 +145,10 @@ const useConfig = (config: Partial<Config>) => {
       audioInput,
       isDataEnabled,
       dataParameters,
+      isScreenShareEnabled,
     },
     dump,
   };
 };
 
-export { useConfig }
+export { useConfig };
