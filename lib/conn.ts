@@ -177,7 +177,7 @@ class RealtimeConnection {
             "Content-Type": "application/json",
           },
           method: "POST",
-        }, 5);
+        }, 7);
       })
       .then((response) => {
         return response?.json();
