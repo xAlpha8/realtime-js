@@ -8,22 +8,25 @@ type WebRTCConnectionEvents = {
   close: (evt: Event) => void;
 };
 
+async function delay(delayInms: number) {
+  return new Promise((resolve) => setTimeout(resolve, delayInms));
+}
 
-async function delay (delayInms: number) {
-  return new Promise(resolve => setTimeout(resolve, delayInms));
-};
-
-async function retryableFetch(url: string | URL, params: RequestInit, attempts: number) {
-  let mult = 1
+async function retryableFetch(
+  url: string | URL,
+  params: RequestInit,
+  attempts: number
+) {
+  let mult = 1;
   for (let i = 0; i < attempts; ++i) {
     try {
-      let res = await fetch(url, params)
-      return res
+      let res = await fetch(url, params);
+      return res;
     } catch (err) {
-      await delay(mult * 1000)
-      mult *= 2
+      await delay(mult * 1000);
+      mult *= 2;
       if (i == attempts - 1) {
-        throw err
+        throw err;
       }
     }
   }
@@ -32,7 +35,7 @@ async function retryableFetch(url: string | URL, params: RequestInit, attempts: 
 class RealtimeConnection {
   private readonly _config: Config | null = null;
   private controller = new AbortController();
-//   private tracks: Track[] = []
+  //   private tracks: Track[] = []
 
   private _sdpFilterCodec(kind: string, codec: string, realSdp: string) {
     var allowed = [];
@@ -167,17 +170,21 @@ class RealtimeConnection {
         }
 
         console.log(offer.sdp);
-        return retryableFetch(offerUrl, {
-          body: JSON.stringify({
-            sdp: offer.sdp,
-            type: offer.type,
-            video_transform: config.videoTransform,
-          }),
-          headers: {
-            "Content-Type": "application/json",
+        return retryableFetch(
+          offerUrl,
+          {
+            body: JSON.stringify({
+              sdp: offer.sdp,
+              type: offer.type,
+              video_transform: config.videoTransform,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
           },
-          method: "POST",
-        }, 7);
+          7
+        );
       })
       .then((response) => {
         return response?.json();
@@ -195,7 +202,7 @@ class RealtimeConnection {
     if (!this.pc) {
       throw Error("Unintialized WebRTCConnection config");
     }
-    const pc = this.pc
+    const pc = this.pc;
     const signal = this.controller.signal;
 
     // register some listeners to help debugging
@@ -244,7 +251,7 @@ class RealtimeConnection {
 
   pc: RTCPeerConnection | null = null;
   dc: RTCDataChannel | null = null;
-  tracks: RtTrack[] = []
+  tracks: RtTrack[] = [];
 
   async connect() {
     console.log("Connecting");
@@ -255,12 +262,14 @@ class RealtimeConnection {
     var pc = this._setupPeerConnection();
     this.pc = pc;
     pc.addEventListener("track", (evt: RTCTrackEvent) => {
-        this.tracks.push(RtTrackSchema.parse({
-            kind: evt.track.kind,
-            stream: evt.streams[0],
-            track: evt.track
-        }))
-    })
+      this.tracks.push(
+        RtTrackSchema.parse({
+          kind: evt.track.kind,
+          stream: evt.streams[0],
+          track: evt.track,
+        })
+      );
+    });
     var dc = null;
 
     if (this._config.isDataEnabled) {
@@ -338,10 +347,10 @@ class RealtimeConnection {
         addTracks.push(
           navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
             stream.getTracks().forEach((track) => {
-                console.log("[audio/video] Adding track");
-            //   if (pc.connectionState == "connected") {
-                pc.addTrack(track, stream);
-            //   }
+              console.log("[audio/video] Adding track");
+              //   if (pc.connectionState == "connected") {
+              pc.addTrack(track, stream);
+              //   }
             });
           })
         );
@@ -359,7 +368,7 @@ class RealtimeConnection {
               stream.getTracks().forEach((track) => {
                 console.log("[screenshare] Adding track");
                 // if (pc.connectionState == "connected") {
-                  pc.addTrack(track, stream);
+                pc.addTrack(track, stream);
                 // }
               });
             })
@@ -469,8 +478,8 @@ class RealtimeConnection {
         callback as WebRTCConnectionEvents["track"]
       );
       return;
-    } else if (event =="statechange") {
-        return;
+    } else if (event == "statechange") {
+      return;
     }
     if (!this.dc) {
       throw Error(
@@ -501,6 +510,18 @@ class RealtimeConnection {
       default:
         throw new Error("Unsupported Event Type");
     }
+  }
+
+  async send(message: string) {
+    if (!this.dc) {
+      throw Error(
+        "Unitialized WebRTCDataChannel. Did you enable data channel in config?"
+      );
+    }
+    if (typeof message !== "string") {
+      throw Error("Message must be a string");
+    }
+    this.dc.send(message);
   }
 }
 
