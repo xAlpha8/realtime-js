@@ -247,6 +247,7 @@ class RealtimeConnection {
       rtcConfig.iceServers = [{ urls: ["stun:stun.l.google.com:19302"] }];
     }
     this.pc = new RTCPeerConnection(rtcConfig);
+    this.dc = null;
   }
 
   pc: RTCPeerConnection | null = null;
@@ -517,6 +518,9 @@ class RealtimeConnection {
       throw Error(
         "Unitialized WebRTCDataChannel. Did you enable data channel in config?"
       );
+    }
+    if (this.dc.readyState !== "open") {
+      throw Error("Connection not ready. Did you call `connect` method?");
     }
     if (typeof message !== "string") {
       throw Error("Message must be a string");
