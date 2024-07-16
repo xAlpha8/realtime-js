@@ -1,7 +1,7 @@
 {
   "name": "@adaptai/realtime-react",
   "private": false,
-  "version": "0.0.606",
+  "version": "0.0.607",
   "type": "module",
   "main": "dist/realtime-react.js",
   "types": "dist/index.d.ts",
