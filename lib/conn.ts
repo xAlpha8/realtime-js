@@ -35,6 +35,7 @@ async function retryableFetch(
 class RealtimeConnection {
   private readonly _config: Config | null = null;
   private controller = new AbortController();
+  private prevAudioTimestamp: number | null = null;
   //   private tracks: Track[] = []
 
   private _sdpFilterCodec(kind: string, codec: string, realSdp: string) {
@@ -551,7 +552,11 @@ class RealtimeConnection {
   }
 
   onAudioPacketReceived(
-    callback: (timestamp: number, source: number) => void,
+    callback: (
+      timestamp: number,
+      prevTimestamp: number | null,
+      source: number
+    ) => void,
     frequency: number = 50
   ) {
     if (!this.pc) {
@@ -565,7 +570,8 @@ class RealtimeConnection {
         setInterval(() => {
           const sources = receiver.getSynchronizationSources();
           sources.forEach((source) => {
-            callback(source.timestamp, source.source);
+            callback(source.timestamp, this.prevAudioTimestamp, source.source);
+            this.prevAudioTimestamp = source.timestamp;
           });
         }, frequency);
         return;
