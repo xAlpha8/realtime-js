@@ -527,6 +527,51 @@ class RealtimeConnection {
     }
     this.dc.send(message);
   }
+
+  logPacketReceiveTime(track: "audio" | "video", frequency: number = 50) {
+    if (!this.pc) {
+      console.error("PeerConnection is not initialized");
+      return;
+    }
+
+    const receivers = this.pc?.getReceivers();
+    setInterval(() => {
+      receivers?.forEach((receiver) => {
+        if (receiver.track.kind === track) {
+          // Check if the track kind is audio
+          const sources = receiver.getSynchronizationSources();
+          sources.forEach((source) => {
+            console.log(
+              `${track} Packet received at: ${source.timestamp} from SSRC: ${source.source}`
+            );
+          });
+        }
+      });
+    }, frequency); // Log every second
+  }
+
+  onAudioPacketReceived(
+    callback: (timestamp: number, source: number) => void,
+    frequency: number = 50
+  ) {
+    if (!this.pc) {
+      console.error("PeerConnection is not initialized");
+      return;
+    }
+
+    const receivers = this.pc?.getReceivers();
+    receivers?.forEach((receiver) => {
+      if (receiver.track.kind === "audio") {
+        setInterval(() => {
+          const sources = receiver.getSynchronizationSources();
+          sources.forEach((source) => {
+            callback(source.timestamp, source.source);
+          });
+        }, frequency);
+        return;
+      }
+    });
+  }
 }
 
 class WebRTCConnectionManager {
