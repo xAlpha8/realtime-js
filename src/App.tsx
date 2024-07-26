@@ -15,7 +15,7 @@ function RealtimeContainer({ config }: { config: Config }) {
     if (isConnected) {
       connection.onAudioPacketReceived((timestamp, prevTimestamp, source) => {
         console.log(timestamp, prevTimestamp, source);
-      });
+      }, 10000);
     }
   }, [connection, isConnected]);
 
