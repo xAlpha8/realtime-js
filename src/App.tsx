@@ -10,6 +10,15 @@ function RealtimeContainer({ config }: { config: Config }) {
   useEffect(() => {
     connection.connect();
   }, []);
+
+  useEffect(() => {
+    if (isConnected) {
+      connection.onAudioPacketReceived((timestamp, prevTimestamp, source) => {
+        console.log(timestamp, prevTimestamp, source);
+      });
+    }
+  }, [connection, isConnected]);
+
   return (
     <div>
       {isConnected ? (
@@ -35,7 +44,7 @@ function App() {
   const [config, setConfig] = useState<Config | null>(null);
   const configDefault: Config = {
     functionUrl: "",
-    offerUrl: "",
+    offerUrl: "http://0.0.0.0:8080/offer",
     isDataEnabled: true,
     dataParameters: { ordered: true },
     isVideoEnabled: true,
