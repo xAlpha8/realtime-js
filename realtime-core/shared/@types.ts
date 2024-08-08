@@ -60,14 +60,3 @@ export type TRealtimeConfig = {
    */
   logger?: TLogger;
 };
-
-export type TRealtimeConnection = {
-  readonly _config: TRealtimeConfig;
-  peerConnection: RTCPeerConnection;
-  dataChannel: RTCDataChannel;
-  tracks: RTCTrackEvent;
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
-  getRemoteVideoStreams: () => Promise<MediaStream[]>;
-  getRemoteAudioStreams: () => Promise<MediaStream[]>;
-};
