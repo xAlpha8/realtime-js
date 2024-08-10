@@ -1,28 +1,32 @@
-export type TVideoConfig = {
-  /**
-   * @default "default"
-   */
-  codec?: "default" | "VP8/90000" | "H264/90000";
-  /**
-   * @default "none"
-   */
-  transform?: "none" | "edges" | "cartoon" | "rotate";
-  /**
-   * Video constraints
-   */
-  constraints?: MediaTrackConstraints;
-};
+export type TVideoConfig =
+  | boolean
+  | {
+      /**
+       * @default "default"
+       */
+      codec?: "default" | "VP8/90000" | "H264/90000";
+      /**
+       * @default "none"
+       */
+      transform?: "none" | "edges" | "cartoon" | "rotate";
+      /**
+       * Video constraints
+       */
+      constraints?: MediaTrackConstraints;
+    };
 
-export type TAudioConfig = {
-  /**
-   * @default "default"
-   */
-  codec?: "default" | "opus/48000/2" | "PCMU/8000" | "PCMA/8000";
-  /**
-   * Audio constraints
-   */
-  constraints?: MediaTrackConstraints;
-};
+export type TAudioConfig =
+  | boolean
+  | {
+      /**
+       * @default "default"
+       */
+      codec?: "default" | "opus/48000/2" | "PCMU/8000" | "PCMA/8000";
+      /**
+       * Audio constraints
+       */
+      constraints?: MediaTrackConstraints;
+    };
 
 export type TLogger = {
   log: (label: string, ...all: unknown[]) => void;
@@ -38,11 +42,11 @@ export type TRealtimeConfig = {
   /**
    * TODO: Add description
    */
-  video?: TVideoConfig | boolean;
+  video?: TVideoConfig;
   /**
    * TODO: Add description
    */
-  audio?: TAudioConfig | boolean;
+  audio?: TAudioConfig;
   /**
    * TODO: Add description
    */
@@ -59,4 +63,9 @@ export type TRealtimeConfig = {
    * TODO: Add description
    */
   logger?: TLogger;
+};
+
+export type TMedia = {
+  track: MediaStreamTrack;
+  stream: MediaStream;
 };
