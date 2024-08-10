@@ -1,13 +1,23 @@
-import { TRealtimeConfig } from "../shared/@types";
+import { TLogger, TRealtimeConfig } from "../shared/@types";
+import { RealtimeConnectionMediaManager } from "./RealtimeConnectionMediaManager";
 
-export class RealTimeConnection {
+export class RealtimeConnection {
   readonly _config: TRealtimeConfig;
+  private _logger: TLogger | undefined;
+  private readonly _logLabel = "RealtimeConnection";
   peerConnection: RTCPeerConnection;
-  dataChannel: RTCDataChannel;
-  tracks: RTCTrackEvent;
+  // dataChannel: RTCDataChannel;
+  // tracks: RTCTrackEvent;
+  mediaManager: RealtimeConnectionMediaManager;
 
   constructor(config: TRealtimeConfig) {
     this._config = config;
+    this._logger = this._config.logger;
+    this.peerConnection = new RTCPeerConnection(this._config.rtcConfig);
+    this.mediaManager = new RealtimeConnectionMediaManager(
+      this.peerConnection,
+      this._config
+    );
   }
 
   /**
@@ -17,7 +27,19 @@ export class RealTimeConnection {
    * @returns {} - Resolves when the connection is established.
    * @throws Will throw an error if the connection cannot be established.
    */
-  async connect(): Promise<void> {}
+  async connect(): Promise<boolean> {
+    const response = await this.mediaManager.setup();
+
+    if (!response) {
+      this._logger?.error(
+        this._logLabel,
+        "Failed to setup RealtimeConnectionMediaManager"
+      );
+      return false;
+    }
+
+    return true;
+  }
 
   /**
    * Disconnects the WebRTC connection.
@@ -31,11 +53,11 @@ export class RealTimeConnection {
    * Returns all the video streams using this.tracks
    * These are the streams we are receiving from the server.
    **/
-  getRemoteVideoStreams(): Promise<MediaStream[]> {}
+  // getRemoteVideoStreams(): Promise<MediaStream[]> {}
 
   /**
    * Returns all the audio streams using this.tracks
    * These are the streams we are receiving from the server.
    **/
-  getRemoteAudioStreams(): Promise<MediaStream[]> {}
+  // getRemoteAudioStreams(): Promise<MediaStream[]> {}
 }
