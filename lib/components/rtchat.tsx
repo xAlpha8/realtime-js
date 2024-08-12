@@ -2,6 +2,7 @@ import { z } from "zod";
 import { RealtimeConnection } from "../../realtime-core/RealtimConnection/RealtimeConnection";
 import { ChatMessage } from "../hooks/types";
 import { useState, useEffect, useRef } from "react";
+import { isMessageEvent } from "../../realtime-core/utils";
 
 const RtChatPropsSchema = z.object({
   rtConnection: z.instanceof(RealtimeConnection),
@@ -15,7 +16,11 @@ const RtChat = (props: RtChatProps) => {
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const onMessage = (evt: MessageEvent) => {
+    const onMessage = (evt: unknown) => {
+      if (!isMessageEvent(evt)) {
+        return;
+      }
+
       setMessages((currentMessages) => [
         ...currentMessages,
         JSON.parse(evt.data),
@@ -25,19 +30,19 @@ const RtChat = (props: RtChatProps) => {
     const onStateChange = () => {
       console.log("ran onStateChange in rtChat");
       if (conn.peerConnection.connectionState === "connected") {
-        conn.dataChannel?.addEventListener("message", onMessage);
+        conn.addEventListener("message", onMessage);
       }
     };
 
     if (conn.peerConnection?.connectionState === "connected") {
       console.log("state is connected. attaching event handler");
-      conn.dataChannel?.addEventListener("message", onMessage);
+      conn.addEventListener("message", onMessage);
     }
     conn.addEventListener("connectionstatechange", onStateChange);
 
     return () => {
       conn.removeEventListener("connectionstatechange", onStateChange);
-      conn.dataChannel?.removeEventListener("message", onMessage);
+      conn.removeEventListener("message", onMessage);
     };
   }, [conn, chatRef]);
 
