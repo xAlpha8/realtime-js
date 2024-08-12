@@ -43,8 +43,23 @@ export class RealtimeConnection {
    */
   async connect(): Promise<TResponse> {
     if (this._isBlocked) {
+      const msg =
+        "Connection is in progress, avoid calling connect multiple times.";
+      this._logger?.warn(this._logLabel, msg);
+
       return {
         ok: false,
+        error: msg,
+      };
+    }
+
+    if (this.peerConnection.connectionState !== "new") {
+      const msg = `connect can only be called if the connection state is new. Current connection state is: ${this.peerConnection.connectionState}`;
+      this._logger?.warn(this._logLabel, msg);
+
+      return {
+        ok: false,
+        error: msg,
       };
     }
 
