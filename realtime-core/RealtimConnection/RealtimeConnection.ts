@@ -1,6 +1,33 @@
 import { TLogger, TRealtimeConfig, TResponse } from "../shared/@types";
 import { RealtimeConnectionMediaManager } from "./RealtimeConnectionMediaManager";
 import { RealtimeConnectionNegotiator } from "./RealtimeConnectionNegotiator";
+
+/**
+ * A class that establishes and manages a WebRTC connection between
+ * the client/browser and a backend deployed on the Adapt Infrastructure.
+ *
+ * @example
+ * const config = {
+ *  functionURL: 'https://infra.getadapt.ai/run/<identifier>',
+ *  video: true,
+ *  audio: true
+ * }
+ *
+ * // Create an instance of the real-time connection.
+ * const connection = new RealtimeConnection(config);
+ *
+ * // Attempt to connect.
+ * const response = await connection.connect();
+ *
+ * // If response.ok is true, the connection to the backend was successful.
+ * if (response.ok) {
+ *  console.log("You are connected.");
+ * } else {
+ *  // If an error occurs, response.error will be defined,
+ *  // usually as a string.
+ *  console.error(`There is an error: ${response.error}`);
+ * }
+ */
 export class RealtimeConnection {
   readonly _config: TRealtimeConfig;
   private _logger: TLogger | undefined;
@@ -37,11 +64,25 @@ export class RealtimeConnection {
   }
 
   /**
-   * Establishes the WebRTC connection. After establishing connection
-   * it will also update tracks.
+   * Initiates the connection process. This method sets up the
+   * media manager, negotiates the connection with the backend, and
+   * updates the peer connection accordingly.
+   *
+   * @returns {Promise<TResponse>} A promise that resolves to an object
+   * indicating the success or failure of the connection process.
+   *
+   * @example
+   * const response = await connection.connect();
+   * if (response.ok) {
+   *   console.log("Connection established successfully.");
+   * } else {
+   *   // If you try to call `connection.connect` multiple times it will return an error.
+   *   console.error("Failed to establish connection:", response.error);
+   * }
    *
    */
   async connect(): Promise<TResponse> {
+    // Prevents multiple simultaneous connection attempts.
     if (this._isBlocked) {
       const msg =
         "Connection is in progress, avoid calling connect multiple times.";
@@ -53,6 +94,7 @@ export class RealtimeConnection {
       };
     }
 
+    // Ensures connect is only called when the connection state is "new".
     if (this.peerConnection.connectionState !== "new") {
       const msg = `connect can only be called if the connection state is new. Current connection state is: ${this.peerConnection.connectionState}`;
       this._logger?.warn(this._logLabel, msg);
@@ -65,6 +107,7 @@ export class RealtimeConnection {
 
     this._isBlocked = true;
 
+    // Setup the media manager for the connection.
     let response = await this.mediaManager.setup();
     if (!response.ok) {
       return {
@@ -72,6 +115,7 @@ export class RealtimeConnection {
       };
     }
 
+    // Negotiate and update the peer connection.
     response = await this.negotiator.negotiateAndUpdatePeerConnection();
 
     if (!response.ok) {
@@ -87,14 +131,27 @@ export class RealtimeConnection {
   }
 
   /**
-   * Disconnects the WebRTC connection.
+   * Terminates the connection by closing the data channel, stopping all transceivers
+   * and senders, and releasing all local media streams.
+   *
+   * @returns {TResponse} An object indicating the success or failure of the disconnection process.
+   *
+   * @example
+   * const response = connection.disconnect();
+   * if (response.ok) {
+   *   console.log("Disconnected successfully.");
+   * } else {
+   *   console.error("Failed to disconnect:", response.error);
+   * }
    */
   disconnect(): TResponse {
     try {
+      // Close the data channel if it exists.
       if (this.dataChannel) {
         this.dataChannel.close();
       }
 
+      // Stop all transceivers and senders, and close the peer connection if it exists.
       if (this.peerConnection) {
         this.peerConnection.getTransceivers().forEach((transceiver) => {
           transceiver.stop();
@@ -107,6 +164,7 @@ export class RealtimeConnection {
         this.peerConnection.close();
       }
 
+      // Release all local media streams through the media manager.
       const response = this.mediaManager.releaseAllLocalStream();
 
       return response;
@@ -118,6 +176,36 @@ export class RealtimeConnection {
     }
   }
 
+  /**
+   * Adds an event listener to the connection, either to the `RTCPeerConnection` or
+   * `RTCDataChannel` based on the specified event type.
+   *
+   * @param {keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap} type
+   * The type of event to listen for. This can be an event from the
+   * `RTCPeerConnection` or `RTCDataChannel` event maps.
+   *
+   * @param {(this: RTCPeerConnection, ev: RTCTrackEvent | Event | RTCDataChannelEvent |
+   * RTCPeerConnectionIceEvent | RTCPeerConnectionIceErrorEvent | MessageEvent) => void} listener
+   * The function to call when the specified event is triggered.
+   *
+   * @example
+   * connection.addEventListener("icecandidate", (event) => {
+   *   if(!isRTCPeerConnectionIceEvent(event)) {
+   *      // If the event is not an instance of
+   *      // isRTCPeerConnectionIceEvent then returning. This check
+   *      // is to make typescript happy.
+   *      return
+   *   }
+   *   console.log("New ICE candidate:", event.candidate);
+   * });
+   *
+   * connection.addEventListener("message", (event) => {
+   *   if(!isMessageEvent(event)) {
+   *       return
+   *   }
+   *    console.log("New message received:", event.data);
+   * });
+   */
   addEventListener(
     type: keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap,
     listener: (
@@ -138,6 +226,7 @@ export class RealtimeConnection {
       case "error":
       case "message":
       case "open":
+        // Event listener for data channel events.
         if (!this.dataChannel) {
           this._logger?.error(
             this._logLabel,
@@ -161,6 +250,21 @@ export class RealtimeConnection {
     }
   }
 
+  /**
+   * Removes an event listener from the connection, either from the `RTCPeerConnection`
+   * or `RTCDataChannel` based on the specified event type.
+   *
+   * @param {keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap} type
+   * The type of event for which the listener should be removed. This can be an event
+   * from the `RTCPeerConnection` or `RTCDataChannel` event maps.
+   *
+   * @param {(this: RTCPeerConnection, ev: RTCTrackEvent | Event | RTCDataChannelEvent |
+   * RTCPeerConnectionIceEvent | RTCPeerConnectionIceErrorEvent | MessageEvent) => void} listener
+   * The event listener function that was previously added and should now be removed.
+   *
+   * @example
+   * connection.removeEventListener("icecandidate", handleIceCandidate);
+   */
   removeEventListener(
     type: keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap,
     listener: (
@@ -181,6 +285,7 @@ export class RealtimeConnection {
       case "error":
       case "message":
       case "open":
+        // Event listener for data channel events.
         if (!this.dataChannel) {
           this._logger?.error(
             this._logLabel,
@@ -204,6 +309,24 @@ export class RealtimeConnection {
     }
   }
 
+  /**
+   * Sends a message through the connection data channel. The message is an object
+   * that is serialized to a JSON string before being sent.
+   *
+   * @template T
+   * @param {T} obj - The object to send through the data channel. This object will be serialized to JSON.
+   * @returns {TResponse} An object indicating the success or failure of the message sending operation.
+   *
+   * @example
+   * const message = { role: "user", content: "Hello!" };
+   * const response = connection.sendMessage(message);
+   *
+   * if (response.ok) {
+   *   console.log("Message sent successfully.");
+   * } else {
+   *   console.error("Failed to send message:", response.error);
+   * }
+   */
   sendMessage<T extends Record<string, unknown>>(obj: T): TResponse {
     if (!this.dataChannel) {
       return {
