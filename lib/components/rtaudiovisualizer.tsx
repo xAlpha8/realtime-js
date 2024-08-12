@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RealtimeConnection } from "../conn";
+import { RealtimeConnection } from "../../realtime-core/RealtimConnection/RealtimeConnection";
 import { useEffect, useRef } from "react";
 import AudioMotionAnalyzer from "audiomotion-analyzer";
 
@@ -30,13 +30,13 @@ const RtAudioVisualizer = (props: RtAudioVisualizerProps) => {
     }
 
     const registerTrack = () => {
-      conn.tracks.forEach((track) => {
+      conn.mediaManager.remoteStreams.audio.forEach((media) => {
         console.log("registered visualizer track");
-        if (audioVisualizerRef.current && track.kind === "audio") {
+        if (audioVisualizerRef.current && media.track.kind === "audio") {
           console.log("Entered the if construct");
           const audioStream =
             audioMotionRef.current!.audioCtx.createMediaStreamSource(
-              track.stream
+              media.stream
             );
 
           audioMotionRef.current!.connectInput(audioStream);
@@ -45,22 +45,21 @@ const RtAudioVisualizer = (props: RtAudioVisualizerProps) => {
       });
     };
 
-    const onStateChange = (state: RTCPeerConnectionState) => {
-      if (state === "connected") {
+    const onStateChange = () => {
+      if (conn.peerConnection.connectionState === "connected") {
         registerTrack();
       }
     };
 
-    if (conn.pc?.connectionState === "connected") {
+    if (conn.peerConnection.connectionState === "connected") {
       registerTrack();
     }
-    conn.on("statechange", onStateChange);
+    conn.addEventListeners("connectionstatechange", onStateChange);
 
     return () => {
-      conn.off("statechange", onStateChange);
-      audioMotionRef.current!.stop();
+      conn.removeEventListeners("connectionstatechange", onStateChange);
     };
-  }, [conn, audioVisualizerRef]);
+  }, [conn, audioVisualizerRef, props.width, props.height]);
 
   return (
     <div className="rt-audio-visualizer">
