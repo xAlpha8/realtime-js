@@ -130,3 +130,29 @@ export function isAValidRTCSessionDescription(
 
   return false;
 }
+
+export function isMessageEvent(event: unknown): event is MessageEvent {
+  return event instanceof MessageEvent;
+}
+
+export function isRTCTrackEvent(event: unknown): event is RTCTrackEvent {
+  return event instanceof RTCTrackEvent;
+}
+
+export function isRTCDataChannelEvent(
+  event: unknown
+): event is RTCDataChannelEvent {
+  return event instanceof RTCDataChannelEvent;
+}
+
+export function isRTCPeerConnectionIceEvent(
+  event: unknown
+): event is RTCPeerConnectionIceEvent {
+  return event instanceof RTCPeerConnectionIceEvent;
+}
+
+export function isRTCPeerConnectionIceErrorEvent(
+  event: unknown
+): event is RTCPeerConnectionIceErrorEvent {
+  return event instanceof RTCPeerConnectionIceErrorEvent;
+}
