@@ -9,6 +9,7 @@ export class RealtimeConnection {
   dataChannel: RTCDataChannel | null;
   mediaManager: RealtimeConnectionMediaManager;
   negotiator: RealtimeConnectionNegotiator;
+  private _isBlocked: boolean = false;
 
   constructor(config: TRealtimeConfig) {
     this._config = config;
@@ -27,7 +28,7 @@ export class RealtimeConnection {
 
     if (dataChannelOptions) {
       this.dataChannel = this.peerConnection.createDataChannel(
-        "data",
+        "chat",
         dataChannelOptions
       );
     } else {
@@ -41,8 +42,15 @@ export class RealtimeConnection {
    *
    */
   async connect(): Promise<TResponse> {
-    let response = await this.mediaManager.setup();
+    if (this._isBlocked) {
+      return {
+        ok: false,
+      };
+    }
 
+    this._isBlocked = true;
+
+    let response = await this.mediaManager.setup();
     if (!response.ok) {
       return {
         error: `Failed to setup RealtimeConnectionMediaManager. Response: ${response.error}.`,
@@ -57,6 +65,7 @@ export class RealtimeConnection {
       };
     }
 
+    this._isBlocked = false;
     return {
       ok: true,
     };
@@ -64,9 +73,35 @@ export class RealtimeConnection {
 
   /**
    * Disconnects the WebRTC connection.
-   *
    */
-  async disconnect(): Promise<void> {}
+  disconnect(): TResponse {
+    try {
+      if (this.dataChannel) {
+        this.dataChannel.close();
+      }
+
+      if (this.peerConnection) {
+        this.peerConnection.getTransceivers().forEach((transceiver) => {
+          transceiver.stop();
+        });
+
+        this.peerConnection.getSenders().forEach((sender) => {
+          sender.track?.stop();
+        });
+
+        this.peerConnection.close();
+      }
+
+      const response = this.mediaManager.releaseAllLocalStream();
+
+      return response;
+    } catch (error) {
+      this._logger?.error(this._logLabel, error);
+      return {
+        error,
+      };
+    }
+  }
 
   addEventListeners(
     type: keyof RTCPeerConnectionEventMap,
@@ -114,5 +149,34 @@ export class RealtimeConnection {
     }
 
     this.peerConnection.addEventListener(type, listener);
+  }
+
+  send(message: string): TResponse {
+    console.log("Inside send");
+    if (!this.dataChannel) {
+      return {
+        error: "Data channel is not initialized.",
+      };
+    }
+
+    if (this.dataChannel.readyState !== "open") {
+      return {
+        error: "Connection not ready. Did you call `connect` method?",
+      };
+    }
+
+    if (typeof message !== "string") {
+      return {
+        error: "Message must be a string",
+      };
+    }
+
+    console.log("Sending message.");
+
+    this.dataChannel.send(message);
+
+    return {
+      ok: true,
+    };
   }
 }

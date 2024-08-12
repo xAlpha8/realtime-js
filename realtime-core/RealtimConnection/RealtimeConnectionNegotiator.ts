@@ -27,14 +27,6 @@ export class RealtimeConnectionNegotiator {
       };
     }
 
-    response = await this._waitForIceGathering();
-
-    if (!response.ok) {
-      return {
-        error: "Failed to find compatible ICE candidate for the connection.",
-      };
-    }
-
     response = await this._getOfferURL();
 
     if (!response.ok) {
@@ -78,52 +70,7 @@ export class RealtimeConnectionNegotiator {
   private async _createAndSetLocalOffer(): Promise<TResponse> {
     try {
       const offer = await this._peerConnection.createOffer();
-      this._peerConnection.setLocalDescription(offer);
-      return {
-        ok: true,
-      };
-    } catch (error) {
-      this._logger?.error(this._logLabel, error);
-      return {
-        error,
-      };
-    }
-  }
-
-  /**
-   * Waits for the ICE gathering to complete.
-   *
-   * @returns {Promise<void>} - Resolves when the ICE gathering is complete.
-   */
-  private async _waitForIceGathering(): Promise<TResponse> {
-    try {
-      if (this._peerConnection.iceConnectionState === "connected") {
-        return {
-          ok: true,
-        };
-      }
-
-      await new Promise((resolve, reject) => {
-        const checkState = () => {
-          if (this._peerConnection.iceConnectionState === "completed") {
-            this._peerConnection.removeEventListener(
-              "icegatheringstatechange",
-              checkState
-            );
-            resolve("connected");
-          } else if (
-            this._peerConnection.iceConnectionState === "failed" ||
-            this._peerConnection.iceConnectionState === "closed"
-          ) {
-            reject("failed");
-          }
-        };
-
-        this._peerConnection.addEventListener(
-          "iceconnectionstatechange",
-          checkState
-        );
-      });
+      await this._peerConnection.setLocalDescription(offer);
 
       return {
         ok: true,
@@ -142,7 +89,11 @@ export class RealtimeConnectionNegotiator {
    */
   private async _getOfferURL(): Promise<TResponse> {
     try {
-      const response = await fetchWithRetry(this._config.functionURL);
+      const response = await fetchWithRetry(
+        this._config.functionURL,
+        undefined,
+        7
+      );
       const payload = (await response.json()) as unknown;
 
       if (!payload || typeof payload !== "object") {
@@ -181,43 +132,58 @@ export class RealtimeConnectionNegotiator {
    * Modify audio and video codec after reading config.
    */
   private _modifySDPBeforeSendingOffer(): TResponse {
-    if (!this._peerConnection.localDescription?.sdp) {
-      this._logger?.error(
-        this._logLabel,
-        "localDescription is not set to the peer connection, of the localDescription set doesn't have sdp."
-      );
+    try {
+      if (!this._peerConnection.localDescription?.sdp) {
+        this._logger?.error(
+          this._logLabel,
+          "localDescription is not set to the peer connection, of the localDescription set doesn't have sdp."
+        );
+
+        return {
+          error: "localDescription.sdp is not defined.",
+        };
+      }
+      const sdp = new SDP();
+
+      let modifiedSDP = this._peerConnection.localDescription.sdp;
+
+      if (
+        typeof this._config.audio === "object" &&
+        this._config.audio.codec &&
+        this._config.audio.codec !== "default"
+      ) {
+        modifiedSDP = sdp.filter(
+          modifiedSDP,
+          "audio",
+          this._config.audio.codec
+        );
+      }
+
+      if (
+        typeof this._config.video === "object" &&
+        this._config.video.codec &&
+        this._config.video.codec !== "default"
+      ) {
+        modifiedSDP = sdp.filter(
+          modifiedSDP,
+          "video",
+          this._config.video.codec
+        );
+      }
 
       return {
-        error: "localDescription.sdp is not defined.",
+        ok: true,
+        data: new RTCSessionDescription({
+          type: this._peerConnection.localDescription.type,
+          sdp: modifiedSDP,
+        }),
+      };
+    } catch (error) {
+      this._logger?.error(this._logLabel, error);
+      return {
+        error,
       };
     }
-    const sdp = new SDP();
-
-    let modifiedSDP = this._peerConnection.localDescription.sdp;
-
-    if (
-      typeof this._config.audio === "object" &&
-      this._config.audio.codec &&
-      this._config.audio.codec !== "default"
-    ) {
-      modifiedSDP = sdp.filter(modifiedSDP, "audio", this._config.audio.codec);
-    }
-
-    if (
-      typeof this._config.video === "object" &&
-      this._config.video.codec &&
-      this._config.video.codec !== "default"
-    ) {
-      modifiedSDP = sdp.filter(modifiedSDP, "video", this._config.video.codec);
-    }
-
-    return {
-      ok: true,
-      data: new RTCSessionDescription({
-        type: this._peerConnection.localDescription.type,
-        sdp: modifiedSDP,
-      }),
-    };
   }
 
   /**

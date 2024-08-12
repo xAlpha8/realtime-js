@@ -6,17 +6,27 @@ import { TLogger, TMedia, TRealtimeConfig, TResponse } from "../shared/@types";
 export class RealtimeConnectionMediaManager {
   private readonly _config: TRealtimeConfig;
   private _logger: TLogger | undefined;
-  private _localAudio: TMedia | null = null;
-  private _localVideo: TMedia | null = null;
-  private _remoteStreams: TMedia[] = [];
   private _peerConnection: RTCPeerConnection;
   private _isSetupCompleted = false;
   private readonly _logLabel = "RealtimeConnectionMediaManager";
+
+  localStreams: Record<"audio" | "video" | "screen", TMedia[]>;
+  remoteStreams: Record<"audio" | "video", TMedia[]>;
 
   constructor(peerConnection: RTCPeerConnection, config: TRealtimeConfig) {
     this._peerConnection = peerConnection;
     this._config = config;
     this._logger = this._config.logger;
+    this.localStreams = {
+      audio: [],
+      video: [],
+      screen: [],
+    };
+
+    this.remoteStreams = {
+      video: [],
+      audio: [],
+    };
   }
 
   /**
@@ -24,8 +34,18 @@ export class RealtimeConnectionMediaManager {
    * display media constraints and add save streams.
    */
   async setup(): Promise<TResponse<string>> {
-    const constraints: MediaStreamConstraints = {};
+    if (this._isSetupCompleted) {
+      this._logger?.warn(
+        this._logLabel,
+        "RealtimeMediaManager is already setup."
+      );
 
+      return {
+        ok: true,
+      };
+    }
+
+    const constraints: MediaStreamConstraints = {};
     const audioConfig = this._config.audio;
     const videoConfig = this._config.video;
     const screenConfig = this._config.screen;
@@ -69,10 +89,16 @@ export class RealtimeConnectionMediaManager {
     }
 
     this._peerConnection.addEventListener("track", (event: RTCTrackEvent) => {
-      this._remoteStreams.push({
+      const media = {
         stream: event.streams[0],
         track: event.track,
-      });
+      };
+
+      if (media.track.kind === "audio") {
+        this.remoteStreams.audio.push(media);
+      } else if (media.track.kind === "video") {
+        this.remoteStreams.video.push(media);
+      }
     });
 
     this._isSetupCompleted = true;
@@ -85,9 +111,6 @@ export class RealtimeConnectionMediaManager {
   async setupWithMediaDevices(
     constraints: MediaStreamConstraints
   ): Promise<TResponse> {
-    this._localAudio = null;
-    this._localVideo = null;
-
     const mediaStream = await this.getUserMedia(constraints);
 
     if (!mediaStream) {
@@ -99,28 +122,23 @@ export class RealtimeConnectionMediaManager {
     }
 
     mediaStream.getTracks().forEach((track) => {
-      if (track.kind.includes("audio")) {
-        this._localAudio = {
-          track,
-          stream: mediaStream,
-        };
-      } else if (track.kind.includes("video")) {
-        this._localVideo = {
-          track,
-          stream: mediaStream,
+      try {
+        const stream = new MediaStream([track]);
+        this._peerConnection.addTrack(track, stream);
+
+        if (track.kind === "audio") {
+          this.localStreams.audio.push({ track, stream });
+        } else if (track.kind === "video") {
+          this.localStreams.video.push({ track, stream });
+        }
+      } catch (error) {
+        this._logger?.error(this._logLabel, error);
+
+        return {
+          error: "Failed to add media track.",
         };
       }
-
-      this._peerConnection.addTrack(track, mediaStream);
     });
-
-    if (constraints.audio && !this._localAudio) {
-      this._logger?.warn(this._logLabel, "Unable to get audio stream.");
-    }
-
-    if (constraints.video && !this._localVideo) {
-      this._logger?.warn(this._logLabel, "Unable to get video stream.");
-    }
 
     return {
       ok: true,
@@ -129,7 +147,6 @@ export class RealtimeConnectionMediaManager {
 
   setupWithoutMediaDevices(): TResponse {
     try {
-      // TODO: Make it configurable.
       this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
       return {
         ok: true,
@@ -149,7 +166,9 @@ export class RealtimeConnectionMediaManager {
       const stream = await navigator.mediaDevices.getDisplayMedia(config);
       stream.getTracks().forEach((track) => {
         this._peerConnection.addTrack(track, stream);
+        this.localStreams.screen.push({ track, stream });
       });
+
       return {
         ok: true,
       };
@@ -170,7 +189,7 @@ export class RealtimeConnectionMediaManager {
     }
   }
 
-  warnIfAskedForResourceBeforeSetupIsCompleted(type: "audio" | "video") {
+  warnIfAskedForResourceBeforeSetupIsCompleted(type: string) {
     this._logger?.warn(
       this._logLabel,
       `Requesting for ${type} before setup is completed, returning null.`
@@ -183,10 +202,7 @@ export class RealtimeConnectionMediaManager {
       return null;
     }
 
-    if (this._localVideo) {
-      return this._localVideo.stream;
-    }
-    return null;
+    return this.localStreams.video[0] || null;
   }
 
   getLocalAudioStream() {
@@ -195,10 +211,28 @@ export class RealtimeConnectionMediaManager {
       return null;
     }
 
-    if (this._localAudio) {
-      return this._localAudio.stream;
-    }
+    return this.localStreams.audio[0] || null;
+  }
 
-    return null;
+  releaseAllLocalStream() {
+    try {
+      [
+        ...this.localStreams.audio,
+        ...this.localStreams.video,
+        ...this.localStreams.screen,
+      ].forEach((media) => {
+        media.track.stop();
+      });
+
+      this._isSetupCompleted = false;
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      this._logger?.error(this._logLabel, error);
+      return {
+        error,
+      };
+    }
   }
 }
