@@ -1,38 +1,96 @@
-import { WebRTCConnectionManager } from "../conn";
-import { ConfigSchema, Config, DeviceOptions } from "./types";
-// import AudioMotionAnalyzer from "audiomotion-analyzer";
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { Config } from "./types";
+import { ConsoleLogger } from "../../realtime-core/Logger/ConsoleLogger";
+import { ICE_STUN_SERVERS } from "../../realtime-core/constants";
+import { useState, useEffect } from "react";
+
+import { RealtimeConnection } from "../../realtime-core/RealtimConnection/RealtimeConnection";
+
+function getANewRTCConnection(config: Config): RealtimeConnection {
+  return new RealtimeConnection({
+    functionURL: config.functionUrl || "",
+    audio: {
+      constraints: {
+        deviceId: config.audioInput,
+      },
+      codec: "PCMU/8000",
+    },
+    video: {
+      constraints: {
+        deviceId: config.videoInput,
+      },
+    },
+    screen: config.isScreenShareEnabled
+      ? {
+          video: true,
+        }
+      : undefined,
+    logger: new ConsoleLogger(),
+    dataChannelOptions: {
+      ordered: true,
+    },
+    rtcConfig: {
+      iceServers: ICE_STUN_SERVERS,
+      // @ts-expect-error This is need. It will not throw any error.
+      sdpSemantics: "unified-plan",
+    },
+  });
+}
 
 const useRealtime = (config: Config) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  const connection = useMemo(() => {
-    WebRTCConnectionManager.setConfig(config);
-    return WebRTCConnectionManager.get();
-  }, [config]);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connecting" | "new" | "failed" | "connected" | "disconnected" | "closed"
+  >("new");
+
+  const [connection, setConnection] = useState(() =>
+    getANewRTCConnection(config)
+  );
+
+  async function reinit(config: Config) {
+    connection.disconnect();
+    setIsConnected(false);
+    new Promise((resolve) => setTimeout(resolve, 3000));
+    const newConnection = getANewRTCConnection(config);
+    setConnection(newConnection);
+    setConnectionStatus("new");
+  }
 
   useEffect(() => {
-    const onStateChange = (state: RTCPeerConnectionState) => {
-      if (state === "connected") {
-        setIsConnected(true);
+    const onStateChange = () => {
+      console.log(
+        "connection state: ",
+        connection?.peerConnection.connectionState
+      );
+      if (connection?.peerConnection.connectionState) {
+        setConnectionStatus(connection.peerConnection.connectionState);
       }
     };
-    if (connection.pc?.connectionState === "connected") {
-      setIsConnected(true);
-    }
-    if (connection.pc) {
-      connection.on("statechange", onStateChange);
+
+    console.log("Connection state", connection?.peerConnection.connectionState);
+    if (connection) {
+      connection.addEventListeners("connectionstatechange", onStateChange);
     }
 
     return () => {
-      if (connection.pc) {
-        connection.off("statechange", onStateChange);
+      if (connection) {
+        connection.removeEventListeners("connectionstatechange", onStateChange);
       }
     };
-  }, [config, connection.pc]);
+  }, [connection]);
+
+  useEffect(() => {
+    if (connectionStatus === "connected") {
+      setIsConnected(true);
+    } else {
+      setIsConnected(false);
+    }
+  }, [connectionStatus]);
 
   return {
     isConnected,
     connection,
+    connectionStatus,
+    reinit,
   };
 };
 
