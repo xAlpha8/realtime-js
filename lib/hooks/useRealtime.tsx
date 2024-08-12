@@ -68,12 +68,12 @@ const useRealtime = (config: Config) => {
 
     console.log("Connection state", connection?.peerConnection.connectionState);
     if (connection) {
-      connection.addEventListeners("connectionstatechange", onStateChange);
+      connection.addEventListener("connectionstatechange", onStateChange);
     }
 
     return () => {
       if (connection) {
-        connection.removeEventListeners("connectionstatechange", onStateChange);
+        connection.removeEventListener("connectionstatechange", onStateChange);
       }
     };
   }, [connection]);

@@ -33,10 +33,10 @@ const RtChat = (props: RtChatProps) => {
       console.log("state is connected. attaching event handler");
       conn.dataChannel?.addEventListener("message", onMessage);
     }
-    conn.addEventListeners("connectionstatechange", onStateChange);
+    conn.addEventListener("connectionstatechange", onStateChange);
 
     return () => {
-      conn.removeEventListeners("connectionstatechange", onStateChange);
+      conn.removeEventListener("connectionstatechange", onStateChange);
       conn.dataChannel?.removeEventListener("message", onMessage);
     };
   }, [conn, chatRef]);
@@ -64,12 +64,10 @@ const RtChat = (props: RtChatProps) => {
           ref={input}
           onKeyDown={(e) => {
             if (e.key === "Enter" && input.current?.value) {
-              conn.send(
-                JSON.stringify({
-                  content: input.current?.value,
-                  role: "user",
-                })
-              );
+              conn.sendMessage({
+                content: input.current?.value,
+                role: "user",
+              });
             }
           }}
         />

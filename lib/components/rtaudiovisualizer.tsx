@@ -54,10 +54,10 @@ const RtAudioVisualizer = (props: RtAudioVisualizerProps) => {
     if (conn.peerConnection.connectionState === "connected") {
       registerTrack();
     }
-    conn.addEventListeners("connectionstatechange", onStateChange);
+    conn.addEventListener("connectionstatechange", onStateChange);
 
     return () => {
-      conn.removeEventListeners("connectionstatechange", onStateChange);
+      conn.removeEventListener("connectionstatechange", onStateChange);
     };
   }, [conn, audioVisualizerRef, props.width, props.height]);
 

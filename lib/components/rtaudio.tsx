@@ -29,10 +29,10 @@ const RtAudio = (props: RtAudioProps) => {
     if (conn.peerConnection.connectionState === "connected") {
       registerTrack();
     }
-    conn.addEventListeners("connectionstatechange", onStateChange);
+    conn.addEventListener("connectionstatechange", onStateChange);
 
     return () => {
-      conn.removeEventListeners("connectionstatechange", onStateChange);
+      conn.removeEventListener("connectionstatechange", onStateChange);
     };
   }, [conn, audioRef]);
 

@@ -37,10 +37,10 @@ const RtVideo = (props: RtVideoProps) => {
       registerTrack();
     }
 
-    conn.addEventListeners("connectionstatechange", onStateChange);
+    conn.addEventListener("connectionstatechange", onStateChange);
 
     return () => {
-      conn.removeEventListeners("connectionstatechange", onStateChange);
+      conn.removeEventListener("connectionstatechange", onStateChange);
     };
   }, []);
 
