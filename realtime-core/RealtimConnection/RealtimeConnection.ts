@@ -113,7 +113,7 @@ export class RealtimeConnection {
         | RTCDataChannelEvent
         | RTCPeerConnectionIceEvent
         | RTCPeerConnectionIceErrorEvent
-        | RTCDataChannelEventMap
+        | MessageEvent
     ) => void
   ) {
     switch (type) {
@@ -156,7 +156,7 @@ export class RealtimeConnection {
         | RTCDataChannelEvent
         | RTCPeerConnectionIceEvent
         | RTCPeerConnectionIceErrorEvent
-        | RTCDataChannelEventMap
+        | MessageEvent
     ) => void
   ) {
     switch (type) {
