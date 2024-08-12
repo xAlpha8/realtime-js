@@ -9,22 +9,51 @@
  */
 
 export class SDP {
+  /**
+   * Filters the SDP string to include only specified media kind and codec.
+   * @param sdp The SDP string to be filtered.
+   * @param kind The media kind to filter ('audio' or 'video').
+   * @param codec The codec to filter by (e.g., 'H264', 'PCMU/8000').
+   * @returns The filtered SDP string.
+   * @example
+   * const sdpString = "v=0\no=...\nm=audio 9 RTP/AVP 0 8 97\na=rtpmap:97 opus/48000/2\n...";
+   * const filteredSDP = sdp.filter(sdpString, "audio", "opus/48000/2");
+   * console.log(filteredSDP); // Outputs SDP with only 'opus' codec for audio.
+   */
   filter(sdp: string, kind: "audio" | "video", codec: string) {
+    // Split the SDP string into individual lines for processing.
     const lines = sdp.split("\n");
+    // Determine the codec payload types that are allowed.
     const allowed = this._getAllowedCodecs(lines, kind, codec);
+    // Filter the SDP lines based on the allowed codecs.
     return this._filterSdp(lines, allowed, kind);
   }
 
+  /**
+   * Escapes all RegExp special characters in a string to avoid issues in regex operations.
+   * @param string The string to escape.
+   * @returns The escaped string.
+   */
   private _escapeRegExp(string: string): string {
+    // Replace each special character with its escaped version.
     return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
+  /**
+   * Identifies the allowed payload types for the specified codec within the SDP.
+   * @param lines The SDP lines.
+   * @param kind The media kind ('audio' or 'video').
+   * @param codec The codec to filter by.
+   * @returns An array of numbers representing the allowed payload types.
+   */
   private _getAllowedCodecs(
     lines: string[],
     kind: string,
     codec: string
   ): number[] {
+    // Regex to find RTX format lines.
     const rtxRegex = /a=fmtp:(\d+) apt=(\d+)\r$/;
+    // Regex to find lines that specify the codec.
     const codecRegex = new RegExp(
       `a=rtpmap:([0-9]+) ${this._escapeRegExp(codec)}`
     );
@@ -53,8 +82,18 @@ export class SDP {
 
     return allowed;
   }
+
+  /**
+   * Filters the SDP lines based on allowed payload types for the specified media kind.
+   * @param lines The SDP lines.
+   * @param allowed An array of allowed payload types.
+   * @param kind The media kind ('audio' or 'video').
+   * @returns The filtered SDP string.
+   */
   private _filterSdp(lines: string[], allowed: number[], kind: string): string {
+    // Regex to identify lines that should be skipped if not allowed.
     const skipRegex = /a=(fmtp|rtcp-fb|rtpmap):([0-9]+)/;
+    // Regex to modify the media descriptor line to only include allowed codecs.
     const videoRegex = new RegExp(`(m=${kind} .*?)( ([0-9]+))*\\s*$`);
     let sdp = "";
     let isKind = false;
