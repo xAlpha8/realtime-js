@@ -103,8 +103,8 @@ export class RealtimeConnection {
     }
   }
 
-  addEventListeners(
-    type: keyof RTCPeerConnectionEventMap,
+  addEventListener(
+    type: keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap,
     listener: (
       this: RTCPeerConnection,
       ev:
@@ -113,22 +113,41 @@ export class RealtimeConnection {
         | RTCDataChannelEvent
         | RTCPeerConnectionIceEvent
         | RTCPeerConnectionIceErrorEvent
+        | RTCDataChannelEventMap
     ) => void
   ) {
-    if (!this.peerConnection) {
-      this._logger?.error(
-        this._logLabel,
-        "Unable to add the new event listener. It looks like peerConnection is null. Probably the connection is disconnected."
-      );
+    switch (type) {
+      case "bufferedamountlow":
+      case "close":
+      case "closing":
+      case "error":
+      case "message":
+      case "open":
+        if (!this.dataChannel) {
+          this._logger?.error(
+            this._logLabel,
+            "Data channel is not defined. Probably dataParameters is missing in the config."
+          );
+          return;
+        }
+        this.dataChannel.addEventListener(type, listener);
+        break;
+      default:
+        // Event listener for peer connection.
+        if (!this.peerConnection) {
+          this._logger?.error(
+            this._logLabel,
+            "Unable to add the new event listener. It looks like peerConnection is null. Probably the connection is disconnected."
+          );
 
-      return;
+          return;
+        }
+        this.peerConnection.addEventListener(type, listener);
     }
-
-    this.peerConnection.addEventListener(type, listener);
   }
 
-  removeEventListeners(
-    type: keyof RTCPeerConnectionEventMap,
+  removeEventListener(
+    type: keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap,
     listener: (
       this: RTCPeerConnection,
       ev:
@@ -137,22 +156,40 @@ export class RealtimeConnection {
         | RTCDataChannelEvent
         | RTCPeerConnectionIceEvent
         | RTCPeerConnectionIceErrorEvent
+        | RTCDataChannelEventMap
     ) => void
   ) {
-    if (!this.peerConnection) {
-      this._logger?.error(
-        this._logLabel,
-        "Unable to remove event listener. It looks like peerConnection is null. Probably the connection is disconnected."
-      );
+    switch (type) {
+      case "bufferedamountlow":
+      case "close":
+      case "closing":
+      case "error":
+      case "message":
+      case "open":
+        if (!this.dataChannel) {
+          this._logger?.error(
+            this._logLabel,
+            "Data channel is not defined. Probably dataParameters is missing in the config."
+          );
+          return;
+        }
+        this.dataChannel.removeEventListener(type, listener);
+        break;
+      default:
+        // Event listener for peer connection.
+        if (!this.peerConnection) {
+          this._logger?.error(
+            this._logLabel,
+            "Unable to add the new event listener. It looks like peerConnection is null. Probably the connection is disconnected."
+          );
 
-      return;
+          return;
+        }
+        this.peerConnection.removeEventListener(type, listener);
     }
-
-    this.peerConnection.addEventListener(type, listener);
   }
 
-  send(message: string): TResponse {
-    console.log("Inside send");
+  sendMessage<T extends Record<string, unknown>>(obj: T): TResponse {
     if (!this.dataChannel) {
       return {
         error: "Data channel is not initialized.",
@@ -164,19 +201,17 @@ export class RealtimeConnection {
         error: "Connection not ready. Did you call `connect` method?",
       };
     }
+    try {
+      const message = JSON.stringify(obj);
+      this.dataChannel.send(message);
 
-    if (typeof message !== "string") {
       return {
-        error: "Message must be a string",
+        ok: true,
+      };
+    } catch (error) {
+      return {
+        error,
       };
     }
-
-    console.log("Sending message.");
-
-    this.dataChannel.send(message);
-
-    return {
-      ok: true,
-    };
   }
 }
