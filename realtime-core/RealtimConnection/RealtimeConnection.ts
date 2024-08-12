@@ -1,14 +1,14 @@
-import { TLogger, TRealtimeConfig } from "../shared/@types";
+import { TLogger, TRealtimeConfig, TResponse } from "../shared/@types";
 import { RealtimeConnectionMediaManager } from "./RealtimeConnectionMediaManager";
-
+import { RealtimeConnectionNegotiator } from "./RealtimeConnectionNegotiator";
 export class RealtimeConnection {
   readonly _config: TRealtimeConfig;
   private _logger: TLogger | undefined;
   private readonly _logLabel = "RealtimeConnection";
   peerConnection: RTCPeerConnection;
-  // dataChannel: RTCDataChannel;
-  // tracks: RTCTrackEvent;
+  dataChannel: RTCDataChannel | null;
   mediaManager: RealtimeConnectionMediaManager;
+  negotiator: RealtimeConnectionNegotiator;
 
   constructor(config: TRealtimeConfig) {
     this._config = config;
@@ -18,46 +18,101 @@ export class RealtimeConnection {
       this.peerConnection,
       this._config
     );
+    this.negotiator = new RealtimeConnectionNegotiator(
+      this.peerConnection,
+      this._config
+    );
+
+    const dataChannelOptions = this._config.dataChannelOptions;
+
+    if (dataChannelOptions) {
+      this.dataChannel = this.peerConnection.createDataChannel(
+        "data",
+        dataChannelOptions
+      );
+    } else {
+      this.dataChannel = null;
+    }
   }
 
   /**
    * Establishes the WebRTC connection. After establishing connection
    * it will also update tracks.
    *
-   * @returns {} - Resolves when the connection is established.
-   * @throws Will throw an error if the connection cannot be established.
    */
-  async connect(): Promise<boolean> {
-    const response = await this.mediaManager.setup();
+  async connect(): Promise<TResponse> {
+    let response = await this.mediaManager.setup();
 
-    if (!response) {
-      this._logger?.error(
-        this._logLabel,
-        "Failed to setup RealtimeConnectionMediaManager"
-      );
-      return false;
+    if (!response.ok) {
+      return {
+        error: `Failed to setup RealtimeConnectionMediaManager. Response: ${response.error}.`,
+      };
     }
 
-    return true;
+    response = await this.negotiator.negotiateAndUpdatePeerConnection();
+
+    if (!response.ok) {
+      return {
+        error: `Failed during negotiating connection. Response: ${response.error}.`,
+      };
+    }
+
+    return {
+      ok: true,
+    };
   }
 
   /**
    * Disconnects the WebRTC connection.
    *
-   * @returns {Promise<void>} - Resolves when the connection is disconnected.
-   * @throws Will throw an error if the connection cannot be disconnected.
    */
   async disconnect(): Promise<void> {}
 
-  /**
-   * Returns all the video streams using this.tracks
-   * These are the streams we are receiving from the server.
-   **/
-  // getRemoteVideoStreams(): Promise<MediaStream[]> {}
+  addEventListeners(
+    type: keyof RTCPeerConnectionEventMap,
+    listener: (
+      this: RTCPeerConnection,
+      ev:
+        | RTCTrackEvent
+        | Event
+        | RTCDataChannelEvent
+        | RTCPeerConnectionIceEvent
+        | RTCPeerConnectionIceErrorEvent
+    ) => void
+  ) {
+    if (!this.peerConnection) {
+      this._logger?.error(
+        this._logLabel,
+        "Unable to add the new event listener. It looks like peerConnection is null. Probably the connection is disconnected."
+      );
 
-  /**
-   * Returns all the audio streams using this.tracks
-   * These are the streams we are receiving from the server.
-   **/
-  // getRemoteAudioStreams(): Promise<MediaStream[]> {}
+      return;
+    }
+
+    this.peerConnection.addEventListener(type, listener);
+  }
+
+  removeEventListeners(
+    type: keyof RTCPeerConnectionEventMap,
+    listener: (
+      this: RTCPeerConnection,
+      ev:
+        | RTCTrackEvent
+        | Event
+        | RTCDataChannelEvent
+        | RTCPeerConnectionIceEvent
+        | RTCPeerConnectionIceErrorEvent
+    ) => void
+  ) {
+    if (!this.peerConnection) {
+      this._logger?.error(
+        this._logLabel,
+        "Unable to remove event listener. It looks like peerConnection is null. Probably the connection is disconnected."
+      );
+
+      return;
+    }
+
+    this.peerConnection.addEventListener(type, listener);
+  }
 }

@@ -69,3 +69,9 @@ export type TMedia = {
   track: MediaStreamTrack;
   stream: MediaStream;
 };
+
+export type TResponse<E = unknown, T = unknown> = {
+  ok?: boolean;
+  error?: E;
+  data?: T;
+};
