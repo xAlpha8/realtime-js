@@ -1,7 +1,35 @@
 import { TLogger, TMedia, TRealtimeConfig, TResponse } from "../shared/@types";
 
 /**
- * This class handles getting access of all the media devices after reading the config
+ * This class manages local and remote media streams, including audio, video
+ * and screen. It handles the setup of local media by requesting access from
+ * the user and adding the media tracks to the peer connection.
+ *
+ * @param {RTCPeerConnection} peerConnection - The peer connection instance to which media tracks will be added.
+ * @param {TRealtimeConfig} config - Configuration object that includes settings related to audio and video constrains etc.
+ *
+ * @example
+ * const peerConnection = new RTCPeerConnection();
+ * const config = {
+ *  audio: true,
+ *  video: {
+ *    constraints: {
+ *      height: { ideal: 1080 },
+ *      width: { ideal: 1920 },
+ *      deviceId: "some-device-id"
+ *    }
+ *  }
+ *  // Other configs
+ * };
+ * const mediaManager = new RealtimeConnectionMediaManager(peerConnection, config);
+ *
+ * // Setup local media and add it to the peer connection.
+ * const response = await mediaManager.setup();
+ * if (response.ok) {
+ *   console.log("Setup successfully.");
+ * } else {
+ *   console.error("Failed to setup:", response.error);
+ * }
  */
 export class RealtimeConnectionMediaManager {
   private readonly _config: TRealtimeConfig;
@@ -10,7 +38,10 @@ export class RealtimeConnectionMediaManager {
   private _isSetupCompleted = false;
   private readonly _logLabel = "RealtimeConnectionMediaManager";
 
+  // To store all the local streams.
   localStreams: Record<"audio" | "video" | "screen", TMedia[]>;
+
+  // To store all the remote streams.
   remoteStreams: Record<"audio" | "video", TMedia[]>;
 
   constructor(peerConnection: RTCPeerConnection, config: TRealtimeConfig) {
@@ -67,6 +98,7 @@ export class RealtimeConnectionMediaManager {
     let setupMediaResponse: TResponse = {};
 
     if (audioConfig || videoConfig) {
+      // If we want user media access.
       setupMediaResponse = await this.setupWithMediaDevices(constraints);
     } else {
       setupMediaResponse = this.setupWithoutMediaDevices();
@@ -79,6 +111,7 @@ export class RealtimeConnectionMediaManager {
     }
 
     if (screenConfig) {
+      // If we want user display media access.
       setupMediaResponse = await this.setupScreenShare(screenConfig);
 
       if (!setupMediaResponse.ok) {
@@ -88,12 +121,14 @@ export class RealtimeConnectionMediaManager {
       }
     }
 
+    // Adding a track event listener to handle incoming media tracks.
     this._peerConnection.addEventListener("track", (event: RTCTrackEvent) => {
       const media = {
         stream: event.streams[0],
         track: event.track,
       };
 
+      // Store the incoming track based on its kind (audio or video).
       if (media.track.kind === "audio") {
         this.remoteStreams.audio.push(media);
       } else if (media.track.kind === "video") {
@@ -108,9 +143,21 @@ export class RealtimeConnectionMediaManager {
     };
   }
 
+  /**
+   * Sets up local media by requesting access to media devices based on the provided constraints.
+   * The obtained media stream is added to the peer connection, and the tracks are stored in localStreams.
+   *
+   * @param {MediaStreamConstraints} constraints - The media stream constraints for accessing media devices.
+   * This can include constraints for audio and video.
+   *
+   * @returns {Promise<TResponse>} A promise that resolves to an object indicating the success
+   * or failure of the setup process.
+   *
+   */
   async setupWithMediaDevices(
     constraints: MediaStreamConstraints
   ): Promise<TResponse> {
+    // Obtain the media stream based on the provided constraints.
     const mediaStream = await this.getUserMedia(constraints);
 
     if (!mediaStream) {
@@ -121,6 +168,7 @@ export class RealtimeConnectionMediaManager {
       };
     }
 
+    // Add each track from the media stream to the peer connection.
     mediaStream.getTracks().forEach((track) => {
       try {
         const stream = new MediaStream([track]);
@@ -145,8 +193,15 @@ export class RealtimeConnectionMediaManager {
     };
   }
 
+  /**
+   * Adds the peer connection to receive audio. This is usually used when we don't want
+   * any user media access (probably when we give input as text and receive output as audio).
+   *
+   * @returns {TResponse} An object indicating the success or failure of the setup process.
+   */
   setupWithoutMediaDevices(): TResponse {
     try {
+      // TODO: Make is configurable depending on the requirement.
       this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
       return {
         ok: true,
@@ -159,6 +214,13 @@ export class RealtimeConnectionMediaManager {
     }
   }
 
+  /**
+   * Sets up screen sharing by requesting access to the user's display media based on the provided configuration.
+   * The obtained media stream is added to the peer connection, and the tracks are stored in local media streams.
+   *
+   * @param {DisplayMediaStreamOptions} config - The options for accessing the display media.
+   * @returns {Promise<TResponse>} A promise that resolves to an object indicating the success or failure of the setup process.
+   */
   async setupScreenShare(
     config: DisplayMediaStreamOptions
   ): Promise<TResponse> {
@@ -180,7 +242,15 @@ export class RealtimeConnectionMediaManager {
     }
   }
 
-  async getUserMedia(constraints: MediaStreamConstraints) {
+  /**
+   * Requests access to user media (audio and/or video) based on the provided constraints.
+   *
+   * @param {MediaStreamConstraints} constraints - The constraints for accessing the user media.
+   * @returns {Promise<MediaStream | null>} A promise that resolves to the obtained media stream or null if access fails.
+   */
+  async getUserMedia(
+    constraints: MediaStreamConstraints
+  ): Promise<MediaStream | null> {
     try {
       return await navigator.mediaDevices.getUserMedia(constraints);
     } catch (e) {
@@ -189,6 +259,11 @@ export class RealtimeConnectionMediaManager {
     }
   }
 
+  /**
+   * Logs a warning if a resource is requested before the setup process is completed.
+   *
+   * @param {string} type - The type of resource requested (e.g., "video" or "audio" or "any string").
+   */
   warnIfAskedForResourceBeforeSetupIsCompleted(type: string) {
     this._logger?.warn(
       this._logLabel,
@@ -196,7 +271,13 @@ export class RealtimeConnectionMediaManager {
     );
   }
 
-  getLocalVideoStream() {
+  /**
+   * Retrieves the local video stream if the setup process is completed.
+   * Returns null if the setup is not yet completed.
+   *
+   * @returns {TMedia | null}
+   */
+  getLocalVideoStream(): TMedia | null {
     if (!this._isSetupCompleted) {
       this.warnIfAskedForResourceBeforeSetupIsCompleted("video");
       return null;
@@ -205,7 +286,13 @@ export class RealtimeConnectionMediaManager {
     return this.localStreams.video[0] || null;
   }
 
-  getLocalAudioStream() {
+  /**
+   * Retrieves the local audio stream if the setup process is completed.
+   * Returns null if the setup is not yet completed.
+   *
+   * @returns {TMedia | null}
+   */
+  getLocalAudioStream(): TMedia | null {
     if (!this._isSetupCompleted) {
       this.warnIfAskedForResourceBeforeSetupIsCompleted("audio");
       return null;
@@ -214,7 +301,12 @@ export class RealtimeConnectionMediaManager {
     return this.localStreams.audio[0] || null;
   }
 
-  releaseAllLocalStream() {
+  /**
+   * Releases all local media streams by stopping their tracks. Resets the setup completion status.
+   *
+   * @returns {TResponse} An object indicating the success or failure of the release process.
+   */
+  releaseAllLocalStream(): TResponse {
     try {
       [
         ...this.localStreams.audio,
