@@ -68,8 +68,6 @@ export class RealtimeConnectionMediaManager {
 
     if (audioConfig || videoConfig) {
       setupMediaResponse = await this.setupWithMediaDevices(constraints);
-    } else {
-      setupMediaResponse = this.setupWithoutMediaDevices();
     }
 
     if (!setupMediaResponse.ok) {
@@ -100,6 +98,14 @@ export class RealtimeConnectionMediaManager {
         this.remoteStreams.video.push(media);
       }
     });
+
+    let setupWithoutMediaResponse: TResponse = this.setupWithoutMediaDevices();
+
+    if (!setupWithoutMediaResponse.ok) {
+      return {
+        error: "Failed to setup user media",
+      };
+    }
 
     this._isSetupCompleted = true;
 
@@ -147,7 +153,27 @@ export class RealtimeConnectionMediaManager {
 
   setupWithoutMediaDevices(): TResponse {
     try {
-      this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
+      let audioTrackAdded = this.localStreams.audio.length > 0;
+      let videoTrackAdded = this.localStreams.video.length > 0;
+
+      if (!audioTrackAdded || !videoTrackAdded) {
+        for (const track of this.localStreams.screen) {
+          if (track.track.kind === "audio") {
+            audioTrackAdded = true;
+          } else if (track.track.kind === "video") {
+            videoTrackAdded = true;
+          }
+        }
+      }
+
+      if (!audioTrackAdded) {
+        this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
+      }
+
+      if (!videoTrackAdded) {
+        this._peerConnection.addTransceiver("video", { direction: "recvonly" });
+      }
+
       return {
         ok: true,
       };
