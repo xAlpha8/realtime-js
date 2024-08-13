@@ -2,7 +2,6 @@ import { TLogger, TRealtimeConfig, TResponse } from "../shared/@types";
 import SDP from "../SDP";
 import { fetchWithRetry, isAValidRTCSessionDescription } from "../utils";
 
-
 /**
  * Handles the negotiation of WebRTC connections, including creating offers,
  * modifying SDP, and setting remote descriptions.
@@ -33,6 +32,8 @@ export class RealtimeConnectionNegotiator {
       };
     }
 
+    this._logger?.log(this._logLabel, "Offer created successfully!");
+
     response = await this._getOfferURL();
 
     if (!response.ok) {
@@ -43,6 +44,8 @@ export class RealtimeConnectionNegotiator {
 
     const offerURL = response.data as string;
 
+    this._logger?.log(this._logLabel, "Retrieve offer URL.");
+
     response = this._modifySDPBeforeSendingOffer();
 
     if (!response.ok) {
@@ -50,6 +53,8 @@ export class RealtimeConnectionNegotiator {
         error: "Failed during modifying sdp before sending offer.",
       };
     }
+
+    this._logger?.log(this._logLabel, "Modified SDP.");
 
     const newDescription = response.data as RTCSessionDescription;
 
@@ -65,6 +70,8 @@ export class RealtimeConnectionNegotiator {
       };
     }
 
+    this._logger?.log(this._logLabel, "Successfully set remote description!");
+
     return {
       ok: true,
     };
@@ -76,8 +83,36 @@ export class RealtimeConnectionNegotiator {
    */
   private async _createAndSetLocalOffer(): Promise<TResponse> {
     try {
+      const gatherStatePromise = new Promise((resolve) => {
+        const checkIceGatheringState = () => {
+          this._logger?.log(
+            this._logLabel,
+            `Gather State: ${this._peerConnection.iceGatheringState}`
+          );
+
+          if (this._peerConnection.iceGatheringState === "complete") {
+            this._peerConnection.removeEventListener(
+              "icegatheringstatechange",
+              checkIceGatheringState
+            );
+            resolve(true);
+          }
+        };
+
+        this._peerConnection.addEventListener(
+          "icegatheringstatechange",
+          checkIceGatheringState
+        );
+        if (this._peerConnection.iceGatheringState === "complete") {
+          resolve(true);
+        }
+      });
+
       const offer = await this._peerConnection.createOffer();
-      await this._peerConnection.setLocalDescription(offer);
+      const setLocalDescriptionPromise =
+        this._peerConnection.setLocalDescription(offer);
+
+      await Promise.all([setLocalDescriptionPromise, gatherStatePromise]);
 
       return {
         ok: true,
@@ -91,7 +126,7 @@ export class RealtimeConnectionNegotiator {
   }
 
   /**
-   * Fetches the offer URL by making a get request to the function URL. 
+   * Fetches the offer URL by making a get request to the function URL.
    * @returns {Promise<TResponse>} A promise that resolves with the offer URL.
    */
   private async _getOfferURL(): Promise<TResponse> {
@@ -196,7 +231,7 @@ export class RealtimeConnectionNegotiator {
 
   /**
    * Sends the offer to the offer URL, retrieves the answer, and updates the peer connection's remote description.
-   * 
+   *
    * @param {string} offerURL - The URL to which the offer is sent.
    * @param {RTCSessionDescription} description - The SDP description to be sent.
    * @returns {Promise<TResponse>} A promise that resolves with the result of the operation.
