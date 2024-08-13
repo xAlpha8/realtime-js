@@ -2,6 +2,11 @@ import { TLogger, TRealtimeConfig, TResponse } from "../shared/@types";
 import SDP from "../SDP";
 import { fetchWithRetry, isAValidRTCSessionDescription } from "../utils";
 
+
+/**
+ * Handles the negotiation of WebRTC connections, including creating offers,
+ * modifying SDP, and setting remote descriptions.
+ */
 export class RealtimeConnectionNegotiator {
   private _peerConnection: RTCPeerConnection;
   private readonly _config: TRealtimeConfig;
@@ -15,8 +20,9 @@ export class RealtimeConnectionNegotiator {
   }
 
   /**
-   * Negotiate a WebRTC connection. It uses all the private function
-   * defined below.
+   * Negotiates and updates the WebRTC peer connection by creating an offer,
+   * modifying SDP, and setting the remote description.
+   * @returns {Promise<TResponse<string>>} A promise that resolves with the negotiation result.
    */
   async negotiateAndUpdatePeerConnection(): Promise<TResponse<string>> {
     let response = await this._createAndSetLocalOffer();
@@ -66,6 +72,7 @@ export class RealtimeConnectionNegotiator {
 
   /**
    * Creates and sets the local offer description.
+   * @returns {Promise<TResponse>} A promise that resolves with the result of the operation.
    */
   private async _createAndSetLocalOffer(): Promise<TResponse> {
     try {
@@ -84,8 +91,8 @@ export class RealtimeConnectionNegotiator {
   }
 
   /**
-   * Retrieves the offer URL based on the configuration.
-   *
+   * Fetches the offer URL by making a get request to the function URL. 
+   * @returns {Promise<TResponse>} A promise that resolves with the offer URL.
    */
   private async _getOfferURL(): Promise<TResponse> {
     try {
@@ -129,7 +136,8 @@ export class RealtimeConnectionNegotiator {
   }
 
   /**
-   * Modify audio and video codec after reading config.
+   * If needed, modifies the SDP of the offer before sending it.
+   * @returns {TResponse} The result of the SDP modification.
    */
   private _modifySDPBeforeSendingOffer(): TResponse {
     try {
@@ -187,8 +195,11 @@ export class RealtimeConnectionNegotiator {
   }
 
   /**
-   * Sends the offer to the specified URL, retrieves the answer and
-   * update peer connection remote description.
+   * Sends the offer to the offer URL, retrieves the answer, and updates the peer connection's remote description.
+   * 
+   * @param {string} offerURL - The URL to which the offer is sent.
+   * @param {RTCSessionDescription} description - The SDP description to be sent.
+   * @returns {Promise<TResponse>} A promise that resolves with the result of the operation.
    */
   private async _sendOfferAndSetRemoteDescription(
     offerURL: string,
