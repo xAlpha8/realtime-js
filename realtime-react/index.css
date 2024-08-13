@@ -1,0 +1,91 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.page-container {
+  height: 100vh;
+  overflow: hidden;
+  background: #1e1e1e;
+  padding: 2rem;
+  display: flex;
+}
+
+.page-wrapper {
+  flex: 1;
+  background: #222222;
+  border-radius: 1rem;
+}
+
+
+.video-container {
+  height: 100%;
+  width: 100%;
+}
+
+.video {
+  object-fit: cover;
+  object-position: center;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+
+.widget-container {
+  position: absolute;
+  width: 20rem;
+  background: #282828;
+  border: 1px solid #333;
+  border-radius: 1rem;
+  padding: 1rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-container {
+  bottom: 1rem;
+  right: 1rem;
+}
+
+
+.chat-container .messages {
+  background: #2e2e2e;
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+  border-radius: 1rem;
+}
+
+.chip {
+  border-radius: 1rem;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  width: max-content;
+  max-width: 13rem;
+}
+
+.chip.left {
+  background-color: #007bff;
+}
+
+.chip.right {
+  background-color: #555;
+  align-self: flex-end;
+}
+
+.settings-container {
+  top: 1rem;
+  right: 1rem;
+}
+
+.audio-container {
+  bottom: 1rem;
+  left: 1rem;
+}
