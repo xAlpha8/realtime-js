@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { RealtimeConnection } from "../../realtime-core/RealtimConnection/RealtimeConnection";
-import { useCallback, useEffect, useRef } from "react";
+import { RealtimeConnection } from "../conn";
+import { useEffect, useRef } from "react";
 
 const RtVideoPropsSchema = z.object({
   rtConnection: z.instanceof(RealtimeConnection),
@@ -11,38 +11,30 @@ const RtVideo = (props: RtVideoProps) => {
   const conn = props.rtConnection;
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const updateVideo = useCallback(async () => {
-    conn.mediaManager.localStreams.video.forEach((media) => {
-      if (media.track.kind === "video") {
-        if (videoRef.current) {
-          videoRef.current.srcObject = media.stream;
-        }
-      }
-    });
-  }, [conn]);
-
   useEffect(() => {
     const registerTrack = () => {
-      updateVideo();
+      conn.tracks.forEach((track) => {
+        if (videoRef.current && track.kind === "video") {
+          videoRef.current.srcObject = track.stream;
+        }
+      });
     };
 
-    registerTrack();
-    const onStateChange = () => {
-      if (conn.peerConnection.connectionState === "connected") {
+    const onStateChange = (state: RTCPeerConnectionState) => {
+      if (state === "connected") {
         registerTrack();
       }
     };
 
-    if (conn.peerConnection.connectionState === "connected") {
+    if (conn.pc?.connectionState === "connected") {
       registerTrack();
     }
-
-    conn.addEventListener("connectionstatechange", onStateChange);
+    conn.on("statechange", onStateChange);
 
     return () => {
-      conn.removeEventListener("connectionstatechange", onStateChange);
+      conn.off("statechange", onStateChange);
     };
-  }, []);
+  }, [conn, videoRef]);
 
   return (
     <div id="video-container">

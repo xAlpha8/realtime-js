@@ -1,8 +1,7 @@
 import { z } from "zod";
-import { RealtimeConnection } from "../../realtime-core/RealtimConnection/RealtimeConnection";
-import { ChatMessage } from "../hooks/types";
+import { RealtimeConnection } from "../conn";
+import { ChatMessage, ChatMessageSchema } from "../hooks/types";
 import { useState, useEffect, useRef } from "react";
-import { isMessageEvent } from "../../realtime-core/utils";
 
 const RtChatPropsSchema = z.object({
   rtConnection: z.instanceof(RealtimeConnection),
@@ -16,33 +15,29 @@ const RtChat = (props: RtChatProps) => {
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const onMessage = (evt: unknown) => {
-      if (!isMessageEvent(evt)) {
-        return;
-      }
-
+    const onMessage = (evt: MessageEvent) => {
       setMessages((currentMessages) => [
         ...currentMessages,
         JSON.parse(evt.data),
       ]);
     };
 
-    const onStateChange = () => {
+    const onStateChange = (state: RTCPeerConnectionState) => {
       console.log("ran onStateChange in rtChat");
-      if (conn.peerConnection.connectionState === "connected") {
-        conn.addEventListener("message", onMessage);
+      if (state === "connected") {
+        conn.on("message", onMessage);
       }
     };
 
-    if (conn.peerConnection?.connectionState === "connected") {
+    if (conn.pc?.connectionState === "connected") {
       console.log("state is connected. attaching event handler");
-      conn.addEventListener("message", onMessage);
+      conn.on("message", onMessage);
     }
-    conn.addEventListener("connectionstatechange", onStateChange);
+    conn.on("statechange", onStateChange);
 
     return () => {
-      conn.removeEventListener("connectionstatechange", onStateChange);
-      conn.removeEventListener("message", onMessage);
+      conn.off("statechange", onStateChange);
+      conn.off("message", onMessage);
     };
   }, [conn, chatRef]);
 
@@ -69,10 +64,12 @@ const RtChat = (props: RtChatProps) => {
           ref={input}
           onKeyDown={(e) => {
             if (e.key === "Enter" && input.current?.value) {
-              conn.sendMessage({
-                content: input.current?.value,
-                role: "user",
-              });
+              conn.send(
+                JSON.stringify({
+                  content: input.current?.value,
+                  role: "user",
+                })
+              );
             }
           }}
         />

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RealtimeConnection } from "../../realtime-core/RealtimConnection/RealtimeConnection";
+import { RealtimeConnection } from "../conn";
 import { useEffect, useRef } from "react";
 
 const RtAudioPropsSchema = z.object({
@@ -13,26 +13,26 @@ const RtAudio = (props: RtAudioProps) => {
 
   useEffect(() => {
     const registerTrack = () => {
-      conn.mediaManager.remoteStreams.audio.forEach((media) => {
-        if (audioRef.current && media.track.kind === "audio") {
-          audioRef.current.srcObject = media.stream;
+      conn.tracks.forEach((track) => {
+        if (audioRef.current && track.kind === "audio") {
+          audioRef.current.srcObject = track.stream;
         }
       });
     };
 
-    const onStateChange = () => {
-      if (conn.peerConnection.connectionState === "connected") {
+    const onStateChange = (state: RTCPeerConnectionState) => {
+      if (state === "connected") {
         registerTrack();
       }
     };
 
-    if (conn.peerConnection.connectionState === "connected") {
+    if (conn.pc?.connectionState === "connected") {
       registerTrack();
     }
-    conn.addEventListener("connectionstatechange", onStateChange);
+    conn.on("statechange", onStateChange);
 
     return () => {
-      conn.removeEventListener("connectionstatechange", onStateChange);
+      conn.off("statechange", onStateChange);
     };
   }, [conn, audioRef]);
 
