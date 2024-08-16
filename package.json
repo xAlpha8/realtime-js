@@ -42,7 +42,10 @@
   },
   "dependencies": {
     "@sentry/react": "^8.17.0",
+    "@xstate/react": "^4.1.1",
     "audiomotion-analyzer": "^4.5.0",
+    "react-hook-form": "^7.52.2",
+    "xstate": "^5.17.3",
     "zod": "^3.23.8"
   }
 }
