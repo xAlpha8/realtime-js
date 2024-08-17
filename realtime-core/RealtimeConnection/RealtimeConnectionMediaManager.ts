@@ -41,9 +41,6 @@ export class RealtimeConnectionMediaManager {
   // To store all the local streams.
   localStreams: Record<"audio" | "video" | "screen", TMedia[]>;
 
-  // To store all the remote streams.
-  remoteStreams: Record<"audio" | "video", TMedia[]>;
-
   constructor(peerConnection: RTCPeerConnection, config: TRealtimeConfig) {
     this._peerConnection = peerConnection;
     this._config = config;
@@ -52,11 +49,6 @@ export class RealtimeConnectionMediaManager {
       audio: [],
       video: [],
       screen: [],
-    };
-
-    this.remoteStreams = {
-      video: [],
-      audio: [],
     };
   }
 
@@ -120,21 +112,6 @@ export class RealtimeConnectionMediaManager {
         };
       }
     }
-
-    // Adding a track event listener to handle incoming media tracks.
-    this._peerConnection.addEventListener("track", (event: RTCTrackEvent) => {
-      const media = {
-        stream: event.streams[0],
-        track: event.track,
-      };
-
-      // Store the incoming track based on its kind (audio or video).
-      if (media.track.kind === "audio") {
-        this.remoteStreams.audio.push(media);
-      } else if (media.track.kind === "video") {
-        this.remoteStreams.video.push(media);
-      }
-    });
 
     this._isSetupCompleted = true;
 
@@ -257,48 +234,6 @@ export class RealtimeConnectionMediaManager {
       this._logger?.error(this._logLabel, e);
       return null;
     }
-  }
-
-  /**
-   * Logs a warning if a resource is requested before the setup process is completed.
-   *
-   * @param {string} type - The type of resource requested (e.g., "video" or "audio" or "any string").
-   */
-  warnIfAskedForResourceBeforeSetupIsCompleted(type: string) {
-    this._logger?.warn(
-      this._logLabel,
-      `Requesting for ${type} before setup is completed, returning null.`
-    );
-  }
-
-  /**
-   * Retrieves the local video stream if the setup process is completed.
-   * Returns null if the setup is not yet completed.
-   *
-   * @returns {TMedia | null}
-   */
-  getLocalVideoStream(): TMedia | null {
-    if (!this._isSetupCompleted) {
-      this.warnIfAskedForResourceBeforeSetupIsCompleted("video");
-      return null;
-    }
-
-    return this.localStreams.video[0] || null;
-  }
-
-  /**
-   * Retrieves the local audio stream if the setup process is completed.
-   * Returns null if the setup is not yet completed.
-   *
-   * @returns {TMedia | null}
-   */
-  getLocalAudioStream(): TMedia | null {
-    if (!this._isSetupCompleted) {
-      this.warnIfAskedForResourceBeforeSetupIsCompleted("audio");
-      return null;
-    }
-
-    return this.localStreams.audio[0] || null;
   }
 
   /**
