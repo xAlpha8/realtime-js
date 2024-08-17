@@ -10,6 +10,7 @@ import { TRealtimeConfig } from "../../realtime-core/shared/@types";
 
 export type TRealtimeConnectionMachinePossibleState = {
   Init: StateValue;
+  SetupCompleted: StateValue;
   Connecting: StateValue;
   Connected: StateValue;
   Disconnecting: StateValue;
@@ -19,7 +20,8 @@ export type TRealtimeConnectionMachinePossibleState = {
 };
 
 export type TRealtimeConnenctionMachineEvents =
-  | { type: "SETUP_CONNECTION"; payload: TRealtimeConfig }
+  | { type: "SETUP_CONNECTION"; payload: { config: TRealtimeConfig } }
+  | { type: "CONNECT" }
   | { type: "CONNECTED" }
   | { type: "FAILED" }
   | { type: "DISCONNECT" }
@@ -103,19 +105,29 @@ export const realtimeConnectionMachine = setup({
       on: {
         SETUP_CONNECTION: {
           guard: ({ event }) => {
-            if (!event.payload) {
+            if (!event.payload || !event.payload.config) {
               return false;
             }
             return true;
           },
           actions: assign(({ event }) => ({
-            connection: new RealtimeConnection(event.payload),
+            connection: new RealtimeConnection(event.payload.config),
           })),
-          target: "Connecting",
+          target: "SetupCompleted",
           description:
             "Configurations will be passed as a payload. If there is no configuration then the machine will not transition to the next step. Once, the machine has the configuration it will create an instance of RealtimeConnection and saved it in context.",
         },
       },
+    },
+    SetupCompleted: {
+      on: {
+        CONNECT: {
+          target: "Connecting",
+        },
+      },
+
+      description:
+        "Once we are in setup completed, we can add event listeners to the instance on RealtimeConnection.",
     },
     Connecting: {
       invoke: {
