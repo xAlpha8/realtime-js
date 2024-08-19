@@ -191,26 +191,26 @@ export class RealtimeConnectionNegotiator {
       let modifiedSDP = this._peerConnection.localDescription.sdp;
 
       if (
-        typeof this._config.audio === "object" &&
-        this._config.audio.codec &&
-        this._config.audio.codec !== "default"
+        typeof this._config.codec === "object" &&
+        this._config.codec.audio &&
+        this._config.codec.audio !== "default"
       ) {
         modifiedSDP = sdp.filter(
           modifiedSDP,
           "audio",
-          this._config.audio.codec
+          this._config.codec.audio
         );
       }
 
       if (
-        typeof this._config.video === "object" &&
-        this._config.video.codec &&
-        this._config.video.codec !== "default"
+        typeof this._config.codec === "object" &&
+        this._config.codec.video &&
+        this._config.codec.video !== "default"
       ) {
         modifiedSDP = sdp.filter(
           modifiedSDP,
           "video",
-          this._config.video.codec
+          this._config.codec.video
         );
       }
 
@@ -245,9 +245,9 @@ export class RealtimeConnectionNegotiator {
 
       if (
         typeof this._config.video === "object" &&
-        this._config.video.transform
+        this._config.videoTransform
       ) {
-        videoTransform = this._config.video.transform;
+        videoTransform = this._config.videoTransform;
       }
 
       const response = await fetchWithRetry(
