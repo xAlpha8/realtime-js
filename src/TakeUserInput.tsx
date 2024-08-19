@@ -1,6 +1,7 @@
 import React from "react";
 import { TRealtimeConfig } from "../realtime-core/shared/@types";
 import { createConfig } from "../realtime-core/create-config";
+import { ConsoleLogger } from "../realtime-core/Logger/ConsoleLogger";
 import { useAvailableMediaDevices } from "../realtime-react/hooks/useAvailableMediaDevices";
 
 export type TTakeUserInputProps = {
@@ -27,11 +28,13 @@ export function TakeUserInput(props: TTakeUserInputProps) {
     try {
       config = createConfig({
         functionURL,
+        // Additional parameter, they are optional.
         audioConstraints: audioDevice ? { deviceId: audioDevice } : undefined,
         videoConstraints: videoDevice ? { deviceId: videoDevice } : undefined,
         dataChannelOptions: {
           ordered: true,
         },
+        logger: new ConsoleLogger(),
       });
     } catch (error) {
       console.error("Error while creating config", error);
