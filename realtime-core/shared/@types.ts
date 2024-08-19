@@ -1,19 +1,27 @@
+export type TVideoCodec = "default" | "VP8/90000" | "H264/90000";
+export type TVideoTransform = "none" | "edges" | "cartoon" | "rotate";
 export type TVideoConfig =
   | boolean
   | {
       /**
        * @default "default"
        */
-      codec?: "default" | "VP8/90000" | "H264/90000";
+      codec?: TVideoCodec;
       /**
        * @default "none"
        */
-      transform?: "none" | "edges" | "cartoon" | "rotate";
+      transform?: TVideoTransform;
       /**
        * Video constraints
        */
       constraints?: MediaTrackConstraints;
     };
+
+export type TAudioCodec =
+  | "default"
+  | "opus/48000/2"
+  | "PCMU/8000"
+  | "PCMA/8000";
 
 export type TAudioConfig =
   | boolean
@@ -21,7 +29,7 @@ export type TAudioConfig =
       /**
        * @default "default"
        */
-      codec?: "default" | "opus/48000/2" | "PCMU/8000" | "PCMA/8000";
+      codec?: TAudioCodec;
       /**
        * Audio constraints
        */

@@ -55,17 +55,27 @@ export async function getAllUserMediaWithoutAskingForPermission(): Promise<TAllU
 }
 
 export async function getAllUserMedia(): Promise<TAllUserMedia> {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: true,
-    video: true,
-  });
+  let stream: undefined | MediaStream;
+  try {
+    /**
+     * Asking for user's permission so that we have access
+     * to the name of user's devices available.
+     */
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true,
+    });
+  } catch (error) {
+    console.log("Unable to get user's permission");
+  }
 
   const devices = await getAllUserMediaWithoutAskingForPermission();
 
-  stream.getTracks().forEach(function (track) {
-    track.stop();
-  });
-
+  if (stream) {
+    stream.getTracks().forEach(function (track) {
+      track.stop();
+    });
+  }
   return devices;
 }
 
