@@ -186,12 +186,22 @@ export function useRealtime() {
       };
     }
 
+    // Before disconnecting, we are removing all the registered event listeners.
+    (
+      Object.keys(_eventListeners.current) as TRealtimeConnectionListenerType[]
+    ).forEach((type) => {
+      const listeners = _eventListeners.current[type];
+      if (!listeners) return;
+      listeners.forEach((listener) => removeEventListener(type, listener));
+    });
+    _eventListeners.current = {};
+
     send({ type: "DISCONNECT" });
 
     return {
       ok: true,
     };
-  }, [actor, send]);
+  }, [actor, send, removeEventListener]);
 
   const getLocalStream = React.useCallback(
     (
@@ -235,22 +245,12 @@ export function useRealtime() {
       };
     }
 
-    // Before resetting, we are removing all the registered event listeners.
-    (
-      Object.keys(_eventListeners.current) as TRealtimeConnectionListenerType[]
-    ).forEach((type) => {
-      const listeners = _eventListeners.current[type];
-      if (!listeners) return;
-      listeners.forEach((listener) => removeEventListener(type, listener));
-    });
-    _eventListeners.current = {};
-
     send({ type: "RESET" });
 
     return {
       ok: true,
     };
-  }, [send, actor, removeEventListener]);
+  }, [send, actor]);
 
   const sendMessage = React.useCallback(
     <T extends Record<string, unknown>>(obj: T): TUseRealtimeFunctionReturn => {
