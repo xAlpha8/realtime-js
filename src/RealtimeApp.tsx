@@ -49,6 +49,7 @@ export function RealtimeApp(props: TRealtimeAppProps) {
         Connection Status: {connectionStatus}
         <button onClick={disconnect}>Disconnect</button>
       </div>
+      {/* For testing, we can also pass remoteStreams. */}
       <RtVideo remoteStreams={[getLocalStream("video").data!]} />
       <div className="audio-container">
         <RtAudioVisualizer remoteStreams={remoteStreams} />
