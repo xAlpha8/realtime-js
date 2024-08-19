@@ -51,7 +51,7 @@ export class RealtimeConnection {
   dataChannel: RTCDataChannel | null;
   mediaManager: RealtimeConnectionMediaManager;
   negotiator: RealtimeConnectionNegotiator;
-  private _isBlocked: boolean = false;
+  private _isConnecting: boolean = false;
 
   constructor(config: TRealtimeConfig) {
     this._config = config;
@@ -98,7 +98,7 @@ export class RealtimeConnection {
    */
   async connect(): Promise<TResponse> {
     // Prevents multiple simultaneous connection attempts.
-    if (this._isBlocked) {
+    if (this._isConnecting) {
       const msg =
         "Connection is in progress, avoid calling connect multiple times.";
       this._logger?.warn(this._logLabel, msg);
@@ -120,7 +120,7 @@ export class RealtimeConnection {
       };
     }
 
-    this._isBlocked = true;
+    this._isConnecting = true;
 
     // Setup the media manager for the connection.
     let response = await this.mediaManager.setup();
@@ -139,7 +139,7 @@ export class RealtimeConnection {
       };
     }
 
-    this._isBlocked = false;
+    this._isConnecting = false;
     return {
       ok: true,
     };
