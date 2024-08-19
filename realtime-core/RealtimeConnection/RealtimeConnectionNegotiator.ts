@@ -190,7 +190,6 @@ export class RealtimeConnectionNegotiator {
           error: "localDescription.sdp is not defined.",
         };
       }
-      const sdp = new SDP();
 
       let modifiedSDP = this._peerConnection.localDescription.sdp;
 
@@ -199,7 +198,7 @@ export class RealtimeConnectionNegotiator {
         this._config.codec.audio &&
         this._config.codec.audio !== "default"
       ) {
-        modifiedSDP = sdp.filter(
+        modifiedSDP = SDP.filter(
           modifiedSDP,
           "audio",
           this._config.codec.audio
@@ -211,7 +210,7 @@ export class RealtimeConnectionNegotiator {
         this._config.codec.video &&
         this._config.codec.video !== "default"
       ) {
-        modifiedSDP = sdp.filter(
+        modifiedSDP = SDP.filter(
           modifiedSDP,
           "video",
           this._config.codec.video

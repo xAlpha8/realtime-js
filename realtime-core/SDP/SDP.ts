@@ -20,13 +20,13 @@ export class SDP {
    * const filteredSDP = sdp.filter(sdpString, "audio", "opus/48000/2");
    * console.log(filteredSDP); // Outputs SDP with only 'opus' codec for audio.
    */
-  filter(sdp: string, kind: "audio" | "video", codec: string) {
+  static filter(sdp: string, kind: "audio" | "video", codec: string) {
     // Split the SDP string into individual lines for processing.
     const lines = sdp.split("\n");
     // Determine the codec payload types that are allowed.
-    const allowed = this._getAllowedCodecs(lines, kind, codec);
+    const allowed = SDP.getAllowedCodecs(lines, kind, codec);
     // Filter the SDP lines based on the allowed codecs.
-    return this._filterSdp(lines, allowed, kind);
+    return SDP.filterSdp(lines, allowed, kind);
   }
 
   /**
@@ -34,7 +34,7 @@ export class SDP {
    * @param string The string to escape.
    * @returns The escaped string.
    */
-  private _escapeRegExp(string: string): string {
+  static escapeRegExp(string: string): string {
     // Replace each special character with its escaped version.
     return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
@@ -46,7 +46,7 @@ export class SDP {
    * @param codec The codec to filter by.
    * @returns An array of numbers representing the allowed payload types.
    */
-  private _getAllowedCodecs(
+  static getAllowedCodecs(
     lines: string[],
     kind: string,
     codec: string
@@ -55,7 +55,7 @@ export class SDP {
     const rtxRegex = /a=fmtp:(\d+) apt=(\d+)\r$/;
     // Regex to find lines that specify the codec.
     const codecRegex = new RegExp(
-      `a=rtpmap:([0-9]+) ${this._escapeRegExp(codec)}`
+      `a=rtpmap:([0-9]+) ${SDP.escapeRegExp(codec)}`
     );
     const allowed: number[] = [];
     let isKind = false;
@@ -90,7 +90,7 @@ export class SDP {
    * @param kind The media kind ('audio' or 'video').
    * @returns The filtered SDP string.
    */
-  private _filterSdp(lines: string[], allowed: number[], kind: string): string {
+  static filterSdp(lines: string[], allowed: number[], kind: string): string {
     // Regex to identify lines that should be skipped if not allowed.
     const skipRegex = /a=(fmtp|rtcp-fb|rtpmap):([0-9]+)/;
     // Regex to modify the media descriptor line to only include allowed codecs.
