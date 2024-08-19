@@ -17,7 +17,7 @@ const RtAudio = (props: RtAudioProps) => {
     });
   }, [remoteStreams]);
 
-  return <audio controls ref={audioRef} autoPlay={true}></audio>;
+  return <audio ref={audioRef} autoPlay={true}></audio>;
 };
 
 export { RtAudio };
