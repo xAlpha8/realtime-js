@@ -1,5 +1,5 @@
 import { useActor } from "@xstate/react";
-import { realtimeConnectionMachine } from "../machine/realtime-connection";
+import { realtimeConnectionMachine } from "../../realtime-core/machine/realtime-connection";
 import React, { useState } from "react";
 import { TMedia, TRealtimeConfig } from "../../realtime-core/shared/@types";
 import { isRTCTrackEvent, isValidConfig } from "../../realtime-core/utils";
