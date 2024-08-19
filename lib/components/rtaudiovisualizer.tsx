@@ -1,17 +1,13 @@
-import { z } from "zod";
-import { RealtimeConnection } from "../conn";
 import { useEffect, useRef } from "react";
 import AudioMotionAnalyzer from "audiomotion-analyzer";
+import { TMedia } from "../../realtime-core/shared/@types";
 
-const RtAudioVisualizerPropsSchema = z.object({
-  rtConnection: z.instanceof(RealtimeConnection),
-  width: z.number(),
-  height: z.number(),
-});
-type RtAudioVisualizerProps = z.infer<typeof RtAudioVisualizerPropsSchema>;
+type RtAudioVisualizerProps = {
+  remoteStreams: TMedia[];
+};
 
 const RtAudioVisualizer = (props: RtAudioVisualizerProps) => {
-  const conn = props.rtConnection;
+  const { remoteStreams } = props;
   const audioVisualizerRef = useRef<HTMLDivElement>(null);
   const audioMotionRef = useRef<AudioMotionAnalyzer | null>(null);
 
@@ -20,53 +16,44 @@ const RtAudioVisualizer = (props: RtAudioVisualizerProps) => {
       audioMotionRef.current = new AudioMotionAnalyzer(
         audioVisualizerRef.current!,
         {
-          width: props.width,
-          height: props.height,
-          gradient: "rainbow",
-          showScaleY: false,
+          mode: 10,
+          channelLayout: "single",
+          fsElement: audioVisualizerRef.current!,
+          frequencyScale: "bark",
+          colorMode: "gradient",
+          gradientLeft: "rainbow",
+          gradientRight: "rainbow",
+          linearAmplitude: false,
+          linearBoost: 1.8,
+          lineWidth: 1.5,
+          showPeaks: false,
+          weightingFilter: "D",
           showScaleX: false,
+          showScaleY: false,
         }
       );
     }
 
-    const registerTrack = () => {
-      conn.tracks.forEach((track) => {
-        console.log("registered visualizer track");
-        if (audioVisualizerRef.current && track.kind === "audio") {
-          console.log("Entered the if construct");
-          const audioStream =
-            audioMotionRef.current!.audioCtx.createMediaStreamSource(
-              track.stream
-            );
+    remoteStreams.forEach((media) => {
+      if (media.track.kind === "audio" && audioVisualizerRef.current) {
+        const audioStream =
+          audioMotionRef.current!.audioCtx.createMediaStreamSource(
+            media.stream
+          );
 
-          audioMotionRef.current!.connectInput(audioStream);
-          audioMotionRef.current!.volume = 0;
-        }
-      });
-    };
-
-    const onStateChange = (state: RTCPeerConnectionState) => {
-      if (state === "connected") {
-        registerTrack();
+        audioMotionRef.current!.connectInput(audioStream);
+        audioMotionRef.current!.volume = 0;
       }
-    };
+    });
 
-    if (conn.pc?.connectionState === "connected") {
-      registerTrack();
-    }
-    conn.on("statechange", onStateChange);
+    audioMotionRef.current!.start();
 
     return () => {
-      conn.off("statechange", onStateChange);
       audioMotionRef.current!.stop();
     };
-  }, [conn, audioVisualizerRef]);
+  }, [remoteStreams]);
 
-  return (
-    <div className="rt-audio-visualizer">
-      <div id="audio-visualizer-container" ref={audioVisualizerRef}></div>
-    </div>
-  );
+  return <div ref={audioVisualizerRef}></div>;
 };
 
 export { RtAudioVisualizer };

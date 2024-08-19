@@ -1,50 +1,34 @@
-import { z } from "zod";
-import { RealtimeConnection } from "../conn";
 import { useEffect, useRef } from "react";
+import { TMedia } from "../../realtime-core/shared/@types";
 
-const RtVideoPropsSchema = z.object({
-  rtConnection: z.instanceof(RealtimeConnection),
-});
-type RtVideoProps = z.infer<typeof RtVideoPropsSchema>;
+type RtVideoProps = {
+  remoteStreams: TMedia[];
+};
 
 const RtVideo = (props: RtVideoProps) => {
-  const conn = props.rtConnection;
+  const { remoteStreams } = props;
+
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const registerTrack = () => {
-      conn.tracks.forEach((track) => {
-        if (videoRef.current && track.kind === "video") {
-          videoRef.current.srcObject = track.stream;
-        }
-      });
-    };
-
-    const onStateChange = (state: RTCPeerConnectionState) => {
-      if (state === "connected") {
-        registerTrack();
+    remoteStreams.forEach((media) => {
+      if (!media) return;
+      if (videoRef.current && media.track.kind === "video") {
+        videoRef.current.srcObject = media.stream;
       }
-    };
-
-    if (conn.pc?.connectionState === "connected") {
-      registerTrack();
-    }
-    conn.on("statechange", onStateChange);
-
-    return () => {
-      conn.off("statechange", onStateChange);
-    };
-  }, [conn, videoRef]);
+    });
+  }, [remoteStreams]);
 
   return (
-    <div id="video-container">
-      <div className="video-container-header">Video</div>
-      <video
-        ref={videoRef}
-        id="video"
-        autoPlay={true}
-        playsInline={true}
-      ></video>
+    <div className="video-container">
+      <div className="video-wrapper">
+        <video
+          className="video"
+          ref={videoRef}
+          autoPlay={true}
+          playsInline={true}
+        ></video>
+      </div>
     </div>
   );
 };

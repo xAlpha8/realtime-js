@@ -1,7 +1,7 @@
 import { useRealtime } from "../realtime-react/hooks/useRealtime";
 import React from "react";
-import { TMedia, TRealtimeConfig } from "../realtime-core/shared/@types";
-import { isMessageEvent } from "../realtime-core/utils";
+import { TRealtimeConfig } from "../realtime-core/shared/@types";
+import { RtAudio, RtAudioVisualizer, RtChat, RtVideo } from "../lib";
 
 export type TRealtimeAppProps = {
   config: TRealtimeConfig;
@@ -19,30 +19,10 @@ export function RealtimeApp(props: TRealtimeAppProps) {
     disconnect,
     setup,
     connectionStatus,
+    getLocalStream,
     remoteStreams,
   } = useRealtime();
-  const [remoteAudio, setRemoteAudio] = React.useState<TMedia | null>(null);
 
-  const onMessage = React.useCallback((e: unknown) => {
-    if (!isMessageEvent(e)) {
-      return;
-    }
-    console.log("Message", e.data);
-  }, []);
-
-  React.useEffect(() => {
-    addEventListener("message", onMessage);
-    return () => {
-      removeEventListener("message", onMessage);
-    };
-  }, [addEventListener, removeEventListener, onMessage]);
-  React.useEffect(() => {
-    remoteStreams.forEach((media) => {
-      if (media.track.kind === "audio") {
-        setRemoteAudio(media);
-      }
-    });
-  }, [remoteStreams]);
   React.useEffect(() => {
     switch (connectionStatus) {
       case "Init":
@@ -64,37 +44,20 @@ export function RealtimeApp(props: TRealtimeAppProps) {
   }, [connectionStatus, connect, reset, setup, config, onDisconnect]);
 
   return (
-    <div>
-      <div>Connection Status: {connectionStatus}</div>
-      {connectionStatus === "Failed" && <div>Failed to connect </div>}
-      <button onClick={disconnect}>Disconnect</button>
-      {remoteAudio && <AudioPlayer audioStream={remoteAudio} />}
-    </div>
-  );
-}
-
-function AudioPlayer({ audioStream }: { audioStream?: TMedia | null }) {
-  const ref = React.useRef<HTMLAudioElement>(null);
-
-  React.useEffect(() => {
-    console.log("Stream", audioStream);
-    if (!ref.current) {
-      console.log("Ref is not defined");
-      return;
-    }
-
-    if (!audioStream) {
-      console.log("Audio stream is not defined");
-      return;
-    }
-
-    ref.current.srcObject = audioStream.stream;
-  }, [audioStream]);
-
-  return (
-    <div>
-      Audio
-      <audio ref={ref} autoPlay />
+    <div className="container">
+      <div className="status-bar">
+        Connection Status: {connectionStatus}
+        <button onClick={disconnect}>Disconnect</button>
+      </div>
+      <RtVideo remoteStreams={[getLocalStream("video").data!]} />
+      <div className="audio-container">
+        <RtAudioVisualizer remoteStreams={remoteStreams} />
+        <RtAudio remoteStreams={remoteStreams} />
+      </div>
+      <RtChat
+        addEventListeners={addEventListener}
+        removeEventListeners={removeEventListener}
+      />
     </div>
   );
 }
