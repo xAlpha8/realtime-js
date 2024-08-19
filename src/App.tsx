@@ -1,48 +1,30 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import { useConfig, useRealtime } from "../lib";
 import { Config } from "../lib";
 import { RtVideo, RtAudio, RtChat } from "../lib";
 import { RtAudioVisualizer } from "../lib/components/rtaudiovisualizer";
-import { getAllUserMedia } from "../realtime-core/utils";
 
 function RealtimeContainer({ config }: { config: Config }) {
-  const { connection, isConnected, connectionStatus } = useRealtime(config);
+  const { connection, isConnected } = useRealtime(config);
+  useEffect(() => {
+    connection.connect();
+  }, []);
 
   useEffect(() => {
-    console.log("Connection state", connectionStatus, connection);
-    if (connection && connectionStatus === "new") {
-      console.log("connecting...");
-      connection.connect();
-    }
-  }, [connection, config, connectionStatus]);
-
-  useEffect(() => {
-    if (isConnected && connection) {
-      const receivers = connection.peerConnection.getReceivers();
-      if (!receivers) return;
-
-      receivers.forEach((receiver) => {
-        if (receiver.track.kind === "audio") {
-          setInterval(() => {
-            const sources = receiver.getSynchronizationSources();
-            sources.forEach((source) => {
-              console.log(source.timestamp, source.source);
-            });
-          }, 10000);
-          return;
-        }
-      });
+    if (isConnected) {
+      connection.onAudioPacketReceived((timestamp, prevTimestamp, source) => {
+        console.log(timestamp, prevTimestamp, source);
+      }, 10000);
     }
   }, [connection, isConnected]);
 
   return (
     <div>
-      {isConnected && connection ? (
+      {isConnected ? (
         <>
           <RtVideo rtConnection={connection} />
           <RtAudio rtConnection={connection} />
-
           <RtAudioVisualizer
             rtConnection={connection}
             height={100}
@@ -61,9 +43,8 @@ function App() {
   const [isRealtimeDisabled, setIsRealtimeDisabled] = useState(true);
   const [config, setConfig] = useState<Config | null>(null);
   const configDefault: Config = {
-    functionUrl:
-      "https://infra.getadapt.ai/run/34393a04fd88127fd52bb64c8a5941f9",
-    offerUrl: "",
+    functionUrl: "",
+    offerUrl: "http://0.0.0.0:8080/offer",
     isDataEnabled: true,
     dataParameters: { ordered: true },
     isVideoEnabled: true,
@@ -78,11 +59,8 @@ function App() {
     useStun: false,
   };
 
-  const [audioOptions, setAudioOptions] = useState([] as MediaDeviceInfo[]);
-  const [videoOptions, setVideoOptions] = useState([] as MediaDeviceInfo[]);
-
-  const { setters, values, dump } = useConfig(configDefault);
-
+  const { options, setters, values, dump } = useConfig(configDefault);
+  const { audioOptions, videoOptions } = options;
   const { setAudioInput, setVideoInput, setOfferUrl, setFunctionUrl } = setters;
   const { audioInput, videoInput, offerUrl, functionUrl } = values;
 
@@ -91,20 +69,6 @@ function App() {
     setConfig(configDump);
     setIsRealtimeDisabled(false);
   };
-
-  async function updateMedia() {
-    try {
-      const { audioInputDevices, videoInputDevices } = await getAllUserMedia();
-      setAudioOptions(audioInputDevices);
-      setVideoOptions(videoInputDevices);
-    } catch (error) {
-      console.log("Error", error);
-    }
-  }
-
-  useEffect(() => {
-    updateMedia();
-  }, []);
 
   return (
     <>
@@ -117,7 +81,7 @@ function App() {
               onChange={(e) => setAudioInput(e.target.value)}
             >
               {audioOptions.map((option, index) => (
-                <option key={index} value={option.deviceId}>
+                <option key={index} value={option.value}>
                   {option.label}
                 </option>
               ))}
@@ -130,7 +94,7 @@ function App() {
               onChange={(e) => setVideoInput(e.target.value)}
             >
               {videoOptions.map((option, index) => (
-                <option key={index} value={option.deviceId}>
+                <option key={index} value={option.value}>
                   {option.label}
                 </option>
               ))}

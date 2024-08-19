@@ -1,3 +1,5 @@
+import { TRealtimeConfig } from "./shared/@types";
+
 // Returns a list of all available audio devices.
 type TAllUserMedia = {
   videoInputDevices: MediaDeviceInfo[];
@@ -53,17 +55,27 @@ export async function getAllUserMediaWithoutAskingForPermission(): Promise<TAllU
 }
 
 export async function getAllUserMedia(): Promise<TAllUserMedia> {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: true,
-    video: true,
-  });
+  let stream: undefined | MediaStream;
+  try {
+    /**
+     * Asking for user's permission so that we have access
+     * to the name of user's devices available.
+     */
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true,
+    });
+  } catch (error) {
+    console.log("Unable to get user's permission");
+  }
 
   const devices = await getAllUserMediaWithoutAskingForPermission();
 
-  stream.getTracks().forEach(function (track) {
-    track.stop();
-  });
-
+  if (stream) {
+    stream.getTracks().forEach(function (track) {
+      track.stop();
+    });
+  }
   return devices;
 }
 
@@ -155,4 +167,14 @@ export function isRTCPeerConnectionIceErrorEvent(
   event: unknown
 ): event is RTCPeerConnectionIceErrorEvent {
   return event instanceof RTCPeerConnectionIceErrorEvent;
+}
+
+export function isValidConfig(obj: unknown): obj is TRealtimeConfig {
+  if (!obj) return false;
+  if (typeof obj !== "object") return false;
+  if (Array.isArray(obj)) return false;
+  if (!("functionURL" in obj)) return false;
+  if (typeof obj.functionURL !== "string" || !obj.functionURL) return false;
+
+  return true;
 }

@@ -2,6 +2,10 @@ import { TLogger, TRealtimeConfig, TResponse } from "../shared/@types";
 import SDP from "../SDP";
 import { fetchWithRetry, isAValidRTCSessionDescription } from "../utils";
 
+/**
+ * Handles the negotiation of WebRTC connections, including creating offers,
+ * modifying SDP, and setting remote descriptions.
+ */
 export class RealtimeConnectionNegotiator {
   private _peerConnection: RTCPeerConnection;
   private readonly _config: TRealtimeConfig;
@@ -15,8 +19,9 @@ export class RealtimeConnectionNegotiator {
   }
 
   /**
-   * Negotiate a WebRTC connection. It uses all the private function
-   * defined below.
+   * Negotiates and updates the WebRTC peer connection by creating an offer,
+   * modifying SDP, and setting the remote description.
+   * @returns {Promise<TResponse<string>>} A promise that resolves with the negotiation result.
    */
   async negotiateAndUpdatePeerConnection(): Promise<TResponse<string>> {
     let response = await this._createAndSetLocalOffer();
@@ -26,6 +31,8 @@ export class RealtimeConnectionNegotiator {
         error: "Failed to create and set local offer.",
       };
     }
+
+    this._logger?.log(this._logLabel, "Offer created successfully!");
 
     response = await this._getOfferURL();
 
@@ -37,6 +44,8 @@ export class RealtimeConnectionNegotiator {
 
     const offerURL = response.data as string;
 
+    this._logger?.log(this._logLabel, "Retrieve offer URL.");
+
     response = this._modifySDPBeforeSendingOffer();
 
     if (!response.ok) {
@@ -44,6 +53,8 @@ export class RealtimeConnectionNegotiator {
         error: "Failed during modifying sdp before sending offer.",
       };
     }
+
+    this._logger?.log(this._logLabel, "Modified SDP.");
 
     const newDescription = response.data as RTCSessionDescription;
 
@@ -59,6 +70,8 @@ export class RealtimeConnectionNegotiator {
       };
     }
 
+    this._logger?.log(this._logLabel, "Successfully set remote description!");
+
     return {
       ok: true,
     };
@@ -66,11 +79,40 @@ export class RealtimeConnectionNegotiator {
 
   /**
    * Creates and sets the local offer description.
+   * @returns {Promise<TResponse>} A promise that resolves with the result of the operation.
    */
   private async _createAndSetLocalOffer(): Promise<TResponse> {
     try {
+      const gatherStatePromise = new Promise((resolve) => {
+        const checkIceGatheringState = () => {
+          this._logger?.log(
+            this._logLabel,
+            `Gather State: ${this._peerConnection.iceGatheringState}`
+          );
+
+          if (this._peerConnection.iceGatheringState === "complete") {
+            this._peerConnection.removeEventListener(
+              "icegatheringstatechange",
+              checkIceGatheringState
+            );
+            resolve(true);
+          }
+        };
+
+        this._peerConnection.addEventListener(
+          "icegatheringstatechange",
+          checkIceGatheringState
+        );
+        if (this._peerConnection.iceGatheringState === "complete") {
+          resolve(true);
+        }
+      });
+
       const offer = await this._peerConnection.createOffer();
-      await this._peerConnection.setLocalDescription(offer);
+      const setLocalDescriptionPromise =
+        this._peerConnection.setLocalDescription(offer);
+
+      await Promise.all([setLocalDescriptionPromise, gatherStatePromise]);
 
       return {
         ok: true,
@@ -84,8 +126,8 @@ export class RealtimeConnectionNegotiator {
   }
 
   /**
-   * Retrieves the offer URL based on the configuration.
-   *
+   * Fetches the offer URL by making a get request to the function URL.
+   * @returns {Promise<TResponse>} A promise that resolves with the offer URL.
    */
   private async _getOfferURL(): Promise<TResponse> {
     try {
@@ -129,7 +171,8 @@ export class RealtimeConnectionNegotiator {
   }
 
   /**
-   * Modify audio and video codec after reading config.
+   * If needed, modifies the SDP of the offer before sending it.
+   * @returns {TResponse} The result of the SDP modification.
    */
   private _modifySDPBeforeSendingOffer(): TResponse {
     try {
@@ -148,26 +191,26 @@ export class RealtimeConnectionNegotiator {
       let modifiedSDP = this._peerConnection.localDescription.sdp;
 
       if (
-        typeof this._config.audio === "object" &&
-        this._config.audio.codec &&
-        this._config.audio.codec !== "default"
+        typeof this._config.codec === "object" &&
+        this._config.codec.audio &&
+        this._config.codec.audio !== "default"
       ) {
         modifiedSDP = sdp.filter(
           modifiedSDP,
           "audio",
-          this._config.audio.codec
+          this._config.codec.audio
         );
       }
 
       if (
-        typeof this._config.video === "object" &&
-        this._config.video.codec &&
-        this._config.video.codec !== "default"
+        typeof this._config.codec === "object" &&
+        this._config.codec.video &&
+        this._config.codec.video !== "default"
       ) {
         modifiedSDP = sdp.filter(
           modifiedSDP,
           "video",
-          this._config.video.codec
+          this._config.codec.video
         );
       }
 
@@ -187,8 +230,11 @@ export class RealtimeConnectionNegotiator {
   }
 
   /**
-   * Sends the offer to the specified URL, retrieves the answer and
-   * update peer connection remote description.
+   * Sends the offer to the offer URL, retrieves the answer, and updates the peer connection's remote description.
+   *
+   * @param {string} offerURL - The URL to which the offer is sent.
+   * @param {RTCSessionDescription} description - The SDP description to be sent.
+   * @returns {Promise<TResponse>} A promise that resolves with the result of the operation.
    */
   private async _sendOfferAndSetRemoteDescription(
     offerURL: string,
@@ -199,9 +245,9 @@ export class RealtimeConnectionNegotiator {
 
       if (
         typeof this._config.video === "object" &&
-        this._config.video.transform
+        this._config.videoTransform
       ) {
-        videoTransform = this._config.video.transform;
+        videoTransform = this._config.videoTransform;
       }
 
       const response = await fetchWithRetry(

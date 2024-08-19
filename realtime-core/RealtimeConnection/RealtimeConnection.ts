@@ -2,6 +2,21 @@ import { TLogger, TRealtimeConfig, TResponse } from "../shared/@types";
 import { RealtimeConnectionMediaManager } from "./RealtimeConnectionMediaManager";
 import { RealtimeConnectionNegotiator } from "./RealtimeConnectionNegotiator";
 
+export type TRealtimeConnectionListenerType =
+  | keyof RTCPeerConnectionEventMap
+  | keyof RTCDataChannelEventMap;
+
+export type TRealtimeConnectionListener = (
+  this: RTCPeerConnection,
+  ev:
+    | RTCTrackEvent
+    | Event
+    | RTCDataChannelEvent
+    | RTCPeerConnectionIceEvent
+    | RTCPeerConnectionIceErrorEvent
+    | MessageEvent
+) => void;
+
 /**
  * A class that establishes and manages a WebRTC connection between
  * the client/browser and a backend deployed on the Adapt Infrastructure.
@@ -180,12 +195,11 @@ export class RealtimeConnection {
    * Adds an event listener to the connection, either to the `RTCPeerConnection` or
    * `RTCDataChannel` based on the specified event type.
    *
-   * @param {keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap} type
+   * @param {TRealtimeConnectionListenerType} type
    * The type of event to listen for. This can be an event from the
    * `RTCPeerConnection` or `RTCDataChannel` event maps.
    *
-   * @param {(this: RTCPeerConnection, ev: RTCTrackEvent | Event | RTCDataChannelEvent |
-   * RTCPeerConnectionIceEvent | RTCPeerConnectionIceErrorEvent | MessageEvent) => void} listener
+   * @param {TRealtimeConnectionListener} listener
    * The function to call when the specified event is triggered.
    *
    * @example
@@ -207,17 +221,8 @@ export class RealtimeConnection {
    * });
    */
   addEventListener(
-    type: keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap,
-    listener: (
-      this: RTCPeerConnection,
-      ev:
-        | RTCTrackEvent
-        | Event
-        | RTCDataChannelEvent
-        | RTCPeerConnectionIceEvent
-        | RTCPeerConnectionIceErrorEvent
-        | MessageEvent
-    ) => void
+    type: TRealtimeConnectionListenerType,
+    listener: TRealtimeConnectionListener
   ) {
     switch (type) {
       case "bufferedamountlow":
@@ -254,29 +259,19 @@ export class RealtimeConnection {
    * Removes an event listener from the connection, either from the `RTCPeerConnection`
    * or `RTCDataChannel` based on the specified event type.
    *
-   * @param {keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap} type
+   * @param {TRealtimeConnectionListenerType} type
    * The type of event for which the listener should be removed. This can be an event
    * from the `RTCPeerConnection` or `RTCDataChannel` event maps.
    *
-   * @param {(this: RTCPeerConnection, ev: RTCTrackEvent | Event | RTCDataChannelEvent |
-   * RTCPeerConnectionIceEvent | RTCPeerConnectionIceErrorEvent | MessageEvent) => void} listener
+   * @param {TRealtimeConnectionListener} listener
    * The event listener function that was previously added and should now be removed.
    *
    * @example
    * connection.removeEventListener("icecandidate", handleIceCandidate);
    */
   removeEventListener(
-    type: keyof RTCPeerConnectionEventMap | keyof RTCDataChannelEventMap,
-    listener: (
-      this: RTCPeerConnection,
-      ev:
-        | RTCTrackEvent
-        | Event
-        | RTCDataChannelEvent
-        | RTCPeerConnectionIceEvent
-        | RTCPeerConnectionIceErrorEvent
-        | MessageEvent
-    ) => void
+    type: TRealtimeConnectionListenerType,
+    listener: TRealtimeConnectionListener
   ) {
     switch (type) {
       case "bufferedamountlow":

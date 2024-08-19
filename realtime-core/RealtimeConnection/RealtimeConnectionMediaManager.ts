@@ -13,11 +13,9 @@ import { TLogger, TMedia, TRealtimeConfig, TResponse } from "../shared/@types";
  * const config = {
  *  audio: true,
  *  video: {
- *    constraints: {
- *      height: { ideal: 1080 },
- *      width: { ideal: 1920 },
- *      deviceId: "some-device-id"
- *    }
+ *    height: { ideal: 1080 },
+ *    width: { ideal: 1920 },
+ *    deviceId: "some-device-id"
  *  }
  *  // Other configs
  * };
@@ -41,9 +39,6 @@ export class RealtimeConnectionMediaManager {
   // To store all the local streams.
   localStreams: Record<"audio" | "video" | "screen", TMedia[]>;
 
-  // To store all the remote streams.
-  remoteStreams: Record<"audio" | "video", TMedia[]>;
-
   constructor(peerConnection: RTCPeerConnection, config: TRealtimeConfig) {
     this._peerConnection = peerConnection;
     this._config = config;
@@ -52,11 +47,6 @@ export class RealtimeConnectionMediaManager {
       audio: [],
       video: [],
       screen: [],
-    };
-
-    this.remoteStreams = {
-      video: [],
-      audio: [],
     };
   }
 
@@ -82,17 +72,11 @@ export class RealtimeConnectionMediaManager {
     const screenConfig = this._config.screen;
 
     if (audioConfig) {
-      constraints.audio =
-        typeof audioConfig === "boolean"
-          ? audioConfig
-          : audioConfig.constraints;
+      constraints.audio = audioConfig;
     }
 
     if (videoConfig) {
-      constraints.video =
-        typeof videoConfig === "boolean"
-          ? videoConfig
-          : videoConfig.constraints;
+      constraints.video = videoConfig;
     }
 
     let setupMediaResponse: TResponse = {};
@@ -285,48 +269,6 @@ export class RealtimeConnectionMediaManager {
   }
 
   /**
-   * Logs a warning if a resource is requested before the setup process is completed.
-   *
-   * @param {string} type - The type of resource requested (e.g., "video" or "audio" or "any string").
-   */
-  warnIfAskedForResourceBeforeSetupIsCompleted(type: string) {
-    this._logger?.warn(
-      this._logLabel,
-      `Requesting for ${type} before setup is completed, returning null.`
-    );
-  }
-
-  /**
-   * Retrieves the local video stream if the setup process is completed.
-   * Returns null if the setup is not yet completed.
-   *
-   * @returns {TMedia | null}
-   */
-  getLocalVideoStream(): TMedia | null {
-    if (!this._isSetupCompleted) {
-      this.warnIfAskedForResourceBeforeSetupIsCompleted("video");
-      return null;
-    }
-
-    return this.localStreams.video[0] || null;
-  }
-
-  /**
-   * Retrieves the local audio stream if the setup process is completed.
-   * Returns null if the setup is not yet completed.
-   *
-   * @returns {TMedia | null}
-   */
-  getLocalAudioStream(): TMedia | null {
-    if (!this._isSetupCompleted) {
-      this.warnIfAskedForResourceBeforeSetupIsCompleted("audio");
-      return null;
-    }
-
-    return this.localStreams.audio[0] || null;
-  }
-
-  /**
    * Releases all local media streams by stopping their tracks. Resets the setup completion status.
    *
    * @returns {TResponse} An object indicating the success or failure of the release process.
@@ -339,6 +281,9 @@ export class RealtimeConnectionMediaManager {
         ...this.localStreams.screen,
       ].forEach((media) => {
         media.track.stop();
+        media.stream.getTracks().forEach((track) => {
+          track.stop();
+        });
       });
 
       this._isSetupCompleted = false;
