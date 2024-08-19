@@ -241,6 +241,9 @@ export class RealtimeConnectionMediaManager {
         ...this.localStreams.screen,
       ].forEach((media) => {
         media.track.stop();
+        media.stream.getTracks().forEach((track) => {
+          track.stop();
+        });
       });
 
       this._isSetupCompleted = false;

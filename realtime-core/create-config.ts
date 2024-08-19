@@ -5,6 +5,7 @@ import {
   TVideoCodec,
   TVideoConfig,
   TVideoTransform,
+  TLogger,
 } from "./shared/@types";
 
 export type TCreateConfigInput = {
@@ -17,6 +18,7 @@ export type TCreateConfigInput = {
   videoTransform?: TVideoTransform;
   dataChannelOptions?: RTCDataChannelInit;
   rtcConfig?: RTCConfiguration;
+  logger?: TLogger;
 };
 
 export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
@@ -33,6 +35,7 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
     videoCodec,
     videoTransform,
     screenConstraints,
+    logger,
   } = input;
 
   if (!functionURL) {
@@ -47,6 +50,7 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
     audio: audioConstraints,
     video: videoConstraints,
     screen: screenConstraints,
+    logger,
   };
 
   if (audioCodec || videoCodec) {
