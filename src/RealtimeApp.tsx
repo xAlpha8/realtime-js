@@ -21,6 +21,7 @@ export function RealtimeApp(props: TRealtimeAppProps) {
     connectionStatus,
     getLocalStream,
     remoteStreams,
+    sendMessage,
   } = useRealtime();
 
   React.useEffect(() => {
@@ -58,6 +59,7 @@ export function RealtimeApp(props: TRealtimeAppProps) {
       <RtChat
         addEventListeners={addEventListener}
         removeEventListeners={removeEventListener}
+        sendMessage={sendMessage}
       />
     </div>
   );
