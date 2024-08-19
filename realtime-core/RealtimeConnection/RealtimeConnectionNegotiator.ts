@@ -34,15 +34,19 @@ export class RealtimeConnectionNegotiator {
 
     this._logger?.log(this._logLabel, "Offer created successfully!");
 
-    response = await this._getOfferURL();
+    let offerURL = this._config.offerURL;
 
-    if (!response.ok) {
-      return {
-        error: "Failed during getting offer URL.",
-      };
+    if (!offerURL) {
+      response = await this._getOfferURL();
+
+      if (!response.ok) {
+        return {
+          error: "Failed during getting offer URL.",
+        };
+      }
+
+      offerURL = response.data as string;
     }
-
-    const offerURL = response.data as string;
 
     this._logger?.log(this._logLabel, "Retrieve offer URL.");
 

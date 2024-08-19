@@ -10,6 +10,7 @@ import {
 
 export type TCreateConfigInput = {
   functionURL: string;
+  offerURL?: string;
   audioConstraints?: TAudioConfig;
   videoConstraints?: TVideoConfig;
   screenConstraints?: DisplayMediaStreamOptions;
@@ -27,6 +28,7 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
   }
   const {
     functionURL,
+    offerURL,
     audioCodec = "PCMU/8000",
     audioConstraints,
     videoConstraints,
@@ -38,12 +40,13 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
     logger,
   } = input;
 
-  if (!functionURL) {
-    throw new Error("functionURL is required.");
+  if (!functionURL && !offerURL) {
+    throw new Error("Either `functionURL` or `offerURL` is required.");
   }
 
   const config: TRealtimeConfig = {
     functionURL,
+    offerURL,
     videoTransform,
     dataChannelOptions,
     rtcConfig,
