@@ -1,9 +1,6 @@
 import React from "react";
-import {
-  TAudioConfig,
-  TRealtimeConfig,
-  TVideoConfig,
-} from "../realtime-core/shared/@types";
+import { TRealtimeConfig } from "../realtime-core/shared/@types";
+import { createConfig } from "../realtime-core/create-config";
 import { useAvailableMediaDevices } from "../realtime-react/hooks/useAvailableMediaDevices";
 
 export type TTakeUserInputProps = {
@@ -21,26 +18,27 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   );
 
   function handleFormSubmit() {
-    const audioConfig: TAudioConfig = audioDevice
-      ? { constraints: { deviceId: audioDevice }, codec: "PCMU/8000" }
-      : false;
-    const videoConfig: TVideoConfig = videoDevice
-      ? { constraints: { deviceId: videoDevice } }
-      : false;
-
     if (!functionURL) {
       console.error("Function URL is needed.");
       return;
     }
 
-    onSubmit({
-      audio: audioConfig,
-      video: videoConfig,
-      functionURL,
-      dataChannelOptions: {
-        ordered: true,
-      },
-    });
+    let config: undefined | TRealtimeConfig;
+    try {
+      config = createConfig({
+        functionURL,
+        audioConstraints: audioDevice ? { deviceId: audioDevice } : undefined,
+        videoConstraints: videoDevice ? { deviceId: videoDevice } : undefined,
+        dataChannelOptions: {
+          ordered: true,
+        },
+      });
+    } catch (error) {
+      console.error("Error while creating config", error);
+      return;
+    }
+
+    onSubmit(config);
   }
 
   return (

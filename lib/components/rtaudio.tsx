@@ -1,47 +1,23 @@
-import { z } from "zod";
-import { RealtimeConnection } from "../conn";
 import { useEffect, useRef } from "react";
+import { TMedia } from "../../realtime-core/shared/@types";
 
-const RtAudioPropsSchema = z.object({
-  rtConnection: z.instanceof(RealtimeConnection),
-});
-type RtAudioProps = z.infer<typeof RtAudioPropsSchema>;
+type RtAudioProps = {
+  remoteStreams: TMedia[];
+};
 
 const RtAudio = (props: RtAudioProps) => {
-  const conn = props.rtConnection;
+  const { remoteStreams } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    const registerTrack = () => {
-      conn.tracks.forEach((track) => {
-        if (audioRef.current && track.kind === "audio") {
-          audioRef.current.srcObject = track.stream;
-        }
-      });
-    };
-
-    const onStateChange = (state: RTCPeerConnectionState) => {
-      if (state === "connected") {
-        registerTrack();
+    remoteStreams.forEach((media) => {
+      if (audioRef.current && media.track.kind === "audio") {
+        audioRef.current.srcObject = media.stream;
       }
-    };
+    });
+  }, [remoteStreams]);
 
-    if (conn.pc?.connectionState === "connected") {
-      registerTrack();
-    }
-    conn.on("statechange", onStateChange);
-
-    return () => {
-      conn.off("statechange", onStateChange);
-    };
-  }, [conn, audioRef]);
-
-  return (
-    <div id="audio-container">
-      <div className="audio-container-label">Audio</div>
-      <audio id="audio" ref={audioRef} autoPlay={true}></audio>
-    </div>
-  );
+  return <audio controls ref={audioRef} autoPlay={true}></audio>;
 };
 
 export { RtAudio };
