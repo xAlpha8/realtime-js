@@ -14,25 +14,34 @@ type RtChatProps = {
     type: TRealtimeConnectionListenerType,
     listener: TRealtimeConnectionListener
   ) => void;
+
+  sendMessage: (obj: { content: string; role: string }) => void;
 };
 
 const RtChat = (props: RtChatProps) => {
-  const { addEventListeners, removeEventListeners } = props;
+  const { addEventListeners, removeEventListeners, sendMessage } = props;
   const chatRef = useRef<HTMLAudioElement>(null);
   const [messages, setMessages] = useState<
     { content?: string; text?: string }[]
   >([]);
-  // const input = useRef<HTMLInputElement>(null);
+  const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const onMessage = (evt: unknown) => {
       if (!isMessageEvent(evt)) {
         return;
       }
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        JSON.parse(evt.data),
-      ]);
+
+      if (typeof evt.data !== "string") {
+        return;
+      }
+
+      try {
+        const message = JSON.parse(evt.data);
+        setMessages((currentMessages) => [...currentMessages, message]);
+      } catch (error) {
+        console.error(error);
+      }
     };
 
     addEventListeners("message", onMessage);
@@ -54,23 +63,22 @@ const RtChat = (props: RtChatProps) => {
           );
         })}
       </section>
-      {/* <div className="flex items-center gap-2 pointer-events-auto max-w-screen-sm w-full mx-auto">
+      <div style={{ marginTop: 10 }}>
         <input
-          className="w-full placeholder:text-gray-800 placeholder:italic p-4 rounded-md bg-opacity-50 bg-white backdrop-blur-md"
           placeholder="Type a message & hit Enter"
           ref={input}
           onKeyDown={(e) => {
             if (e.key === "Enter" && input.current?.value) {
-              conn.send(
-                JSON.stringify({
-                  content: input.current?.value,
-                  role: "user",
-                })
-              );
+              sendMessage({
+                content: input.current.value,
+                role: "user",
+              });
+
+              input.current.value = "";
             }
           }}
         />
-      </div> */}
+      </div>
     </div>
   );
 };

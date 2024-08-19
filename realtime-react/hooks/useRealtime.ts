@@ -252,6 +252,35 @@ export function useRealtime() {
     };
   }, [send, actor, removeEventListener]);
 
+  const sendMessage = React.useCallback(
+    <T extends Record<string, unknown>>(obj: T): TUseRealtimeFunctionReturn => {
+      const connection = actor.context.connection;
+
+      if (!connection) {
+        return {
+          error: {
+            msg: "It seems connection is not defined.",
+          },
+        };
+      }
+
+      const response = connection.sendMessage(obj);
+
+      if (response.ok) {
+        return {
+          ok: true,
+        };
+      }
+
+      return {
+        error: {
+          msg: `Failed to send message. ${response.error}`,
+        },
+      };
+    },
+    [actor]
+  );
+
   return {
     connectionStatus: actor.value,
     remoteStreams,
@@ -262,5 +291,6 @@ export function useRealtime() {
     addEventListener,
     removeEventListener,
     getLocalStream,
+    sendMessage,
   };
 }
