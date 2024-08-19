@@ -33,7 +33,6 @@ export function RealtimeApp(props: TRealtimeAppProps) {
         connect();
         break;
       case "Disconnected":
-        reset();
         onDisconnect();
         break;
     }
