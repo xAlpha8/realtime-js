@@ -13,11 +13,9 @@ import { TLogger, TMedia, TRealtimeConfig, TResponse } from "../shared/@types";
  * const config = {
  *  audio: true,
  *  video: {
- *    constraints: {
- *      height: { ideal: 1080 },
- *      width: { ideal: 1920 },
- *      deviceId: "some-device-id"
- *    }
+ *    height: { ideal: 1080 },
+ *    width: { ideal: 1920 },
+ *    deviceId: "some-device-id"
  *  }
  *  // Other configs
  * };
@@ -74,17 +72,11 @@ export class RealtimeConnectionMediaManager {
     const screenConfig = this._config.screen;
 
     if (audioConfig) {
-      constraints.audio =
-        typeof audioConfig === "boolean"
-          ? audioConfig
-          : audioConfig.constraints;
+      constraints.audio = audioConfig;
     }
 
     if (videoConfig) {
-      constraints.video =
-        typeof videoConfig === "boolean"
-          ? videoConfig
-          : videoConfig.constraints;
+      constraints.video = videoConfig;
     }
 
     let setupMediaResponse: TResponse = {};
