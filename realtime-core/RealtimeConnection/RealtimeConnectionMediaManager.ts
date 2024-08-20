@@ -84,8 +84,6 @@ export class RealtimeConnectionMediaManager {
     if (audioConfig || videoConfig) {
       // If we want user media access.
       setupMediaResponse = await this.setupWithMediaDevices(constraints);
-    } else {
-      setupMediaResponse = this.setupWithoutMediaDevices();
     }
 
     if (!setupMediaResponse.ok) {
@@ -103,6 +101,29 @@ export class RealtimeConnectionMediaManager {
           error: "Failed to setup screen for sharing.",
         };
       }
+    }
+
+    // Adding a track event listener to handle incoming media tracks.
+    this._peerConnection.addEventListener("track", (event: RTCTrackEvent) => {
+      const media = {
+        stream: event.streams[0],
+        track: event.track,
+      };
+
+      // Store the incoming track based on its kind (audio or video).
+      if (media.track.kind === "audio") {
+        this.remoteStreams.audio.push(media);
+      } else if (media.track.kind === "video") {
+        this.remoteStreams.video.push(media);
+      }
+    });
+
+    let setupWithoutMediaResponse: TResponse = this.setupWithoutMediaDevices();
+
+    if (!setupWithoutMediaResponse.ok) {
+      return {
+        error: "Failed to setup user media",
+      };
     }
 
     this._isSetupCompleted = true;
@@ -170,8 +191,27 @@ export class RealtimeConnectionMediaManager {
    */
   setupWithoutMediaDevices(): TResponse {
     try {
-      // TODO: Make is configurable depending on the requirement.
-      this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
+      let audioTrackAdded = this.localStreams.audio.length > 0;
+      let videoTrackAdded = this.localStreams.video.length > 0;
+
+      if (!audioTrackAdded || !videoTrackAdded) {
+        for (const track of this.localStreams.screen) {
+          if (track.track.kind === "audio") {
+            audioTrackAdded = true;
+          } else if (track.track.kind === "video") {
+            videoTrackAdded = true;
+          }
+        }
+      }
+
+      if (!audioTrackAdded) {
+        this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
+      }
+
+      if (!videoTrackAdded) {
+        this._peerConnection.addTransceiver("video", { direction: "recvonly" });
+      }
+
       return {
         ok: true,
       };

@@ -34,15 +34,19 @@ export class RealtimeConnectionNegotiator {
 
     this._logger?.log(this._logLabel, "Offer created successfully!");
 
-    response = await this._getOfferURL();
+    let offerURL = this._config.offerURL;
 
-    if (!response.ok) {
-      return {
-        error: "Failed during getting offer URL.",
-      };
+    if (!offerURL) {
+      response = await this._getOfferURL();
+
+      if (!response.ok) {
+        return {
+          error: "Failed during getting offer URL.",
+        };
+      }
+
+      offerURL = response.data as string;
     }
-
-    const offerURL = response.data as string;
 
     this._logger?.log(this._logLabel, "Retrieve offer URL.");
 
@@ -186,7 +190,6 @@ export class RealtimeConnectionNegotiator {
           error: "localDescription.sdp is not defined.",
         };
       }
-      const sdp = new SDP();
 
       let modifiedSDP = this._peerConnection.localDescription.sdp;
 
@@ -195,7 +198,7 @@ export class RealtimeConnectionNegotiator {
         this._config.codec.audio &&
         this._config.codec.audio !== "default"
       ) {
-        modifiedSDP = sdp.filter(
+        modifiedSDP = SDP.filter(
           modifiedSDP,
           "audio",
           this._config.codec.audio
@@ -207,7 +210,7 @@ export class RealtimeConnectionNegotiator {
         this._config.codec.video &&
         this._config.codec.video !== "default"
       ) {
-        modifiedSDP = sdp.filter(
+        modifiedSDP = SDP.filter(
           modifiedSDP,
           "video",
           this._config.codec.video
