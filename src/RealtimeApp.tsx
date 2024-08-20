@@ -1,6 +1,5 @@
-import { useRealtime } from "../realtime-react/hooks/useRealtime";
+import { TUseRealtimeReturn } from "../realtime-react/hooks/useRealtime";
 import React from "react";
-import { TRealtimeConfig } from "../realtime-core";
 import {
   RealtimeAudio,
   RealtimeAudioVisualizer,
@@ -8,14 +7,11 @@ import {
   RealtimeVideo,
 } from "../realtime-react";
 
-export type TRealtimeAppProps = {
-  config: TRealtimeConfig;
+export type TRealtimeAppProps = Omit<TUseRealtimeReturn, "variables"> & {
   onDisconnect: () => void;
 };
 
 export function RealtimeApp(props: TRealtimeAppProps) {
-  const { config, onDisconnect } = props;
-
   const {
     addEventListener,
     addOnPacketReceiveListener,
@@ -27,12 +23,13 @@ export function RealtimeApp(props: TRealtimeAppProps) {
     getLocalStream,
     remoteStreams,
     sendMessage,
-  } = useRealtime();
+    onDisconnect,
+  } = props;
 
   React.useEffect(() => {
     switch (connectionStatus) {
       case "Init":
-        setup(config);
+        setup();
         break;
       case "SetupCompleted":
         addOnPacketReceiveListener((event) => {
@@ -62,7 +59,6 @@ export function RealtimeApp(props: TRealtimeAppProps) {
     connectionStatus,
     connect,
     setup,
-    config,
     onDisconnect,
     addOnPacketReceiveListener,
   ]);
