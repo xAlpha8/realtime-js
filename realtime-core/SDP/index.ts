@@ -1,3 +1,1 @@
-import { SDP } from "./SDP";
-
-export default SDP;
+export * from "./SDP";
