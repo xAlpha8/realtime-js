@@ -59,7 +59,7 @@ export class RealtimeConnection {
   private readonly _logLabel = "RealtimeConnection";
   private _isConnecting: boolean = false;
   private _previousRTCRtpSynchronizationSource: Record<
-    number,
+    string,
     RTCRtpSynchronizationSource
   > = {};
   private _packetReceiveEventListeners = [] as [
@@ -368,9 +368,16 @@ export class RealtimeConnection {
     }
   }
 
+  /**
+   * Adds a listener for receiving packets. The listener will be called periodically
+   * based on the specified frequency, providing information about synchronization sources.
+   *
+   * @param {TRealtimeConnectionPacketReceiveCallback} callback - The function to call when a packet is received.
+   * @param {number} [frequency=1000] - The frequency (in milliseconds) at which the listener is called. Default is 1000 ms.
+   */
   addOnPacketReceiveListener(
     callback: TRealtimeConnectionPacketReceiveCallback,
-    frequency = 1000
+    frequency: number = 1000
   ) {
     if (!this.peerConnection) {
       this._logger?.error(
@@ -380,44 +387,65 @@ export class RealtimeConnection {
       return;
     }
 
+    // Set up an interval to periodically check for synchronization sources.
     const interval = setInterval(() => {
       const receivers = this.peerConnection.getReceivers();
+
       receivers.forEach((receiver) => {
+        // Get the list of synchronization sources from each receiver.
         const sources = receiver.getSynchronizationSources();
+
         sources.forEach((source) => {
+          const id = `receiver_id:${receiver.track.id}-source_id:${source.source}`;
+          // Call the provided callback with information about the current and previous synchronization sources.
           callback({
             kind: receiver.track.kind,
             source,
-            prevSource:
-              this._previousRTCRtpSynchronizationSource[source.source],
+            prevSource: this._previousRTCRtpSynchronizationSource[id],
           });
-          this._previousRTCRtpSynchronizationSource[source.source] = source;
+
+          // Update the previous source map with the current source.
+          this._previousRTCRtpSynchronizationSource[id] = source;
         });
       });
     }, frequency);
 
+    // Store the listener and its associated interval and frequency for later removal.
     this._packetReceiveEventListeners.push([callback, interval, frequency]);
   }
 
+  /**
+   * Removes a previously added packet receive listener.
+   *
+   * @param {TRealtimeConnectionPacketReceiveCallback} callback - The function to remove.
+   * @param {number} [frequency=1000] - The frequency (in milliseconds) of the listener to remove. Default is 1000 ms.
+   */
   removeOnPacketReceiverListener(
     callback: TRealtimeConnectionPacketReceiveCallback,
-    frequency = 1000
+    frequency: number = 1000
   ) {
     this._packetReceiveEventListeners =
       this._packetReceiveEventListeners.filter(([_c, _i, _f]) => {
         if (_c === callback && _f === frequency) {
+          // Clear the interval for the specified listener.
           clearInterval(_i);
-          return false;
+          return false; // Exclude this listener from the updated list.
         }
-        return true;
+        return true; // Keep other listeners.
       });
   }
 
+  /**
+   * Removes all packet receive listeners and clears any associated intervals.
+   */
   removeAllOnPacketReceiverListeners() {
+    // Iterate over all stored listeners and clear their intervals.
     this._packetReceiveEventListeners.forEach((listeners) => {
       clearInterval(listeners[1]);
     });
 
+    // Clear the list of packet receive event listeners and reset the previous synchronization sources.
     this._packetReceiveEventListeners = [];
+    this._previousRTCRtpSynchronizationSource = {};
   }
 }
