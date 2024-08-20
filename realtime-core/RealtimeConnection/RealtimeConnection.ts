@@ -446,5 +446,6 @@ export class RealtimeConnection {
 
     // Clear the list of packet receive event listeners and reset the previous synchronization sources.
     this._packetReceiveEventListeners = [];
+    this._previousRTCRtpSynchronizationSource = {};
   }
 }
