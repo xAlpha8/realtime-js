@@ -21,6 +21,7 @@ export type TRealtimeConnectionPacketReceiveCallbackEvent = {
   prevSource: RTCRtpSynchronizationSource | null;
   source: RTCRtpSynchronizationSource;
   kind: string;
+  id: string;
 };
 
 export type TRealtimeConnectionPacketReceiveCallback = (
@@ -399,6 +400,7 @@ export class RealtimeConnection {
           const id = `receiver_id:${receiver.track.id}-source_id:${source.source}`;
           // Call the provided callback with information about the current and previous synchronization sources.
           callback({
+            id,
             kind: receiver.track.kind,
             source,
             prevSource: this._previousRTCRtpSynchronizationSource[id],
