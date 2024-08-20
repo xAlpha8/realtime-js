@@ -1,7 +1,12 @@
 import { useRealtime } from "../realtime-react/hooks/useRealtime";
 import React from "react";
 import { TRealtimeConfig } from "../realtime-core";
-import { RtAudio, RtAudioVisualizer, RtChat, RtVideo } from "../lib";
+import {
+  RealtimeAudio,
+  RealtimeAudioVisualizer,
+  RealtimeChat,
+  RealtimeVideo,
+} from "../realtime-react";
 
 export type TRealtimeAppProps = {
   config: TRealtimeConfig;
@@ -69,12 +74,12 @@ export function RealtimeApp(props: TRealtimeAppProps) {
         <button onClick={disconnect}>Disconnect</button>
       </div>
       {/* For testing, we can also pass remoteStreams. */}
-      <RtVideo remoteStreams={[getLocalStream("video").data!]} />
+      <RealtimeVideo remoteStreams={[getLocalStream("video").data!]} />
       <div className="audio-container">
-        <RtAudioVisualizer remoteStreams={remoteStreams} />
-        <RtAudio remoteStreams={remoteStreams} />
+        <RealtimeAudioVisualizer remoteStreams={remoteStreams} />
+        <RealtimeAudio remoteStreams={remoteStreams} />
       </div>
-      <RtChat
+      <RealtimeChat
         addEventListeners={addEventListener}
         removeEventListeners={removeEventListener}
         sendMessage={sendMessage}
