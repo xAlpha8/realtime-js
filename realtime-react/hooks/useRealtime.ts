@@ -6,6 +6,7 @@ import { isRTCTrackEvent, isValidConfig } from "../../realtime-core/utils";
 import {
   TRealtimeConnectionListener,
   TRealtimeConnectionListenerType,
+  TRealtimeConnectionPacketReceiveCallback,
 } from "../../realtime-core/RealtimeConnection/RealtimeConnection";
 
 export type TUseRealtimeFunctionReturn<T = unknown> = {
@@ -116,6 +117,54 @@ export function useRealtime() {
     [_unregisterEventListener, actor.context.connection]
   );
 
+  const addOnPacketReceiveListener = React.useCallback(
+    (callback: TRealtimeConnectionPacketReceiveCallback, frequency = 1000) => {
+      const connection = actor.context.connection;
+
+      if (!connection) {
+        return {
+          error: {
+            msg: "Failed to add event listener. Did you call setup()?",
+          },
+        };
+      }
+
+      connection.addOnPacketReceiveListener(callback, frequency);
+    },
+    [actor.context.connection]
+  );
+
+  const removeOnPacketReceiveListener = React.useCallback(
+    (callback: TRealtimeConnectionPacketReceiveCallback, frequency = 1000) => {
+      const connection = actor.context.connection;
+
+      if (!connection) {
+        return {
+          error: {
+            msg: "Failed to add event listener. Did you call setup()?",
+          },
+        };
+      }
+
+      connection.removeOnPacketReceiverListener(callback, frequency);
+    },
+    [actor.context.connection]
+  );
+
+  const removeAllOnPacketReceiveListeners = React.useCallback(() => {
+    const connection = actor.context.connection;
+
+    if (!connection) {
+      return {
+        error: {
+          msg: "Failed to add event listener. Did you call setup()?",
+        },
+      };
+    }
+
+    connection.removeAllOnPacketReceiverListeners();
+  }, [actor.context.connection]);
+
   const setup = React.useCallback(
     (config: TRealtimeConfig): TUseRealtimeFunctionReturn => {
       if (!config) {
@@ -170,6 +219,7 @@ export function useRealtime() {
       }
     }
     addEventListener("track", _handleOnTrack);
+
     send({ type: "CONNECT" });
 
     return {
@@ -196,12 +246,17 @@ export function useRealtime() {
     });
     _eventListeners.current = {};
 
+    /**
+     * Removing all packet received event listeners.
+     */
+    removeAllOnPacketReceiveListeners();
+
     send({ type: "DISCONNECT" });
 
     return {
       ok: true,
     };
-  }, [actor, send, removeEventListener]);
+  }, [actor, send, removeEventListener, removeAllOnPacketReceiveListeners]);
 
   const getLocalStream = React.useCallback(
     (
@@ -290,6 +345,8 @@ export function useRealtime() {
     reset,
     addEventListener,
     removeEventListener,
+    addOnPacketReceiveListener,
+    removeOnPacketReceiveListener,
     getLocalStream,
     sendMessage,
   };

@@ -13,9 +13,9 @@ export function RealtimeApp(props: TRealtimeAppProps) {
 
   const {
     addEventListener,
+    addOnPacketReceiveListener,
     removeEventListener,
     connect,
-    reset,
     disconnect,
     setup,
     connectionStatus,
@@ -30,6 +30,19 @@ export function RealtimeApp(props: TRealtimeAppProps) {
         setup(config);
         break;
       case "SetupCompleted":
+        addOnPacketReceiveListener((event) => {
+          if (event.kind !== "audio") {
+            // Only logging if we have timestamp for audio.
+            return;
+          }
+
+          console.log("Previous", event.prevSource?.timestamp);
+          console.log("Current", event.source.timestamp);
+          console.log(
+            "Diff",
+            event.source.timestamp - (event.prevSource?.timestamp || 0)
+          );
+        });
         connect();
         break;
       case "Disconnected":
@@ -39,9 +52,15 @@ export function RealtimeApp(props: TRealtimeAppProps) {
 
     if (connectionStatus === "Failed") {
       console.log("Something went wrong, please try again");
-      reset();
     }
-  }, [connectionStatus, connect, reset, setup, config, onDisconnect]);
+  }, [
+    connectionStatus,
+    connect,
+    setup,
+    config,
+    onDisconnect,
+    addOnPacketReceiveListener,
+  ]);
 
   return (
     <div className="container">
