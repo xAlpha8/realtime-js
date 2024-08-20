@@ -1,8 +1,7 @@
 import { useActor } from "@xstate/react";
-import React, { useState } from "react";
+import React from "react";
 import {
   TMedia,
-  TRealtimeConfig,
   isRTCTrackEvent,
   isValidConfig,
   realtimeConnectionMachine,
@@ -10,6 +9,8 @@ import {
   TRealtimeConnectionListenerType,
   TRealtimeConnectionPacketReceiveCallback,
 } from "../../realtime-core";
+
+import { useCreateConfig } from "./useCreateConfig";
 
 export type TUseRealtimeFunctionReturn<T = unknown> = {
   ok?: boolean;
@@ -21,7 +22,8 @@ export type TUseRealtimeFunctionReturn<T = unknown> = {
 
 export function useRealtime() {
   const [actor, send] = useActor(realtimeConnectionMachine);
-  const [remoteStreams, setRemoteStreams] = useState<TMedia[]>([]);
+  const [remoteStreams, setRemoteStreams] = React.useState<TMedia[]>([]);
+  const { getConfig, ...variables } = useCreateConfig();
 
   const _eventListeners = React.useRef<
     Partial<
@@ -167,40 +169,38 @@ export function useRealtime() {
     connection.removeAllOnPacketReceiverListeners();
   }, [actor.context.connection]);
 
-  const setup = React.useCallback(
-    (config: TRealtimeConfig): TUseRealtimeFunctionReturn => {
-      if (!config) {
-        return {
-          error: {
-            msg: "Config is undefined. Make sure config is an object before calling setup()",
-          },
-        };
-      }
-
-      if (!isValidConfig(config)) {
-        return {
-          error: {
-            msg: "Given config is not a valid config object.",
-          },
-        };
-      }
-
-      if (!actor.can({ type: "SETUP_CONNECTION", payload: { config } })) {
-        return {
-          error: {
-            msg: `You cannot call 'setup()' if the connection state is: ${actor.value}, it can only be called if the connection state is Init`,
-          },
-        };
-      }
-
-      send({ type: "SETUP_CONNECTION", payload: { config } });
-
+  const setup = React.useCallback((): TUseRealtimeFunctionReturn => {
+    const config = getConfig();
+    if (!config) {
       return {
-        ok: true,
+        error: {
+          msg: "Config is undefined. Make sure config is an object before calling setup()",
+        },
       };
-    },
-    [send, actor]
-  );
+    }
+
+    if (!isValidConfig(config)) {
+      return {
+        error: {
+          msg: "Given config is not a valid config object.",
+        },
+      };
+    }
+
+    if (!actor.can({ type: "SETUP_CONNECTION", payload: { config } })) {
+      return {
+        error: {
+          msg: `You cannot call 'setup()' if the connection state is: ${actor.value}, it can only be called if the connection state is Init`,
+        },
+      };
+    }
+
+    send({ type: "SETUP_CONNECTION", payload: { config } });
+
+    return {
+      ok: true,
+    };
+  }, [send, actor, getConfig]);
 
   const connect = React.useCallback(() => {
     if (!actor.can({ type: "CONNECT" })) {
@@ -351,5 +351,8 @@ export function useRealtime() {
     removeOnPacketReceiveListener,
     getLocalStream,
     sendMessage,
+    variables,
   };
 }
+
+export type TUseRealtimeReturn = ReturnType<typeof useRealtime>;

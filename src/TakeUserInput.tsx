@@ -1,20 +1,24 @@
-import React from "react";
-import { TRealtimeConfig, createConfig, ConsoleLogger } from "../realtime-core";
 import { useAvailableMediaDevices } from "../realtime-react/hooks/useAvailableMediaDevices";
+import { TUseCreateConfigVariables } from "../realtime-react";
+import React from "react";
 
 export type TTakeUserInputProps = {
-  onSubmit: (data: TRealtimeConfig) => void;
+  onSubmit: () => void;
+  variables: TUseCreateConfigVariables;
 };
 
 export function TakeUserInput(props: TTakeUserInputProps) {
-  const { onSubmit } = props;
+  const { onSubmit, variables } = props;
   const { availableAudioDevices, availableVideoDevices } =
     useAvailableMediaDevices();
-  const [audioDevice, setAudioDevice] = React.useState("");
-  const [videoDevice, setVideoDevice] = React.useState("");
-  const [functionURL, setFunctionURL] = React.useState(
-    "https://infra.getadapt.ai/run/68deae870da28f99a8562dcb962b9383"
-  );
+  const {
+    audioDeviceId,
+    setAudioDeviceId,
+    videoDeviceId,
+    setVideoDeviceId,
+    functionURL,
+    setFunctionURL,
+  } = variables;
 
   function handleFormSubmit() {
     if (!functionURL) {
@@ -22,25 +26,15 @@ export function TakeUserInput(props: TTakeUserInputProps) {
       return;
     }
 
-    let config: undefined | TRealtimeConfig;
-    try {
-      config = createConfig({
-        functionURL,
-        // Additional parameter, they are optional.
-        audioConstraints: audioDevice ? { deviceId: audioDevice } : undefined,
-        videoConstraints: videoDevice ? { deviceId: videoDevice } : undefined,
-        dataChannelOptions: {
-          ordered: true,
-        },
-        logger: new ConsoleLogger(),
-      });
-    } catch (error) {
-      console.error("Error while creating config", error);
-      return;
-    }
-
-    onSubmit(config);
+    onSubmit();
   }
+
+  React.useEffect(() => {
+    // For testing setting default function URL on Mount.
+    setFunctionURL(
+      "https://infra.getadapt.ai/run/68deae870da28f99a8562dcb962b9383"
+    );
+  }, [setFunctionURL]);
 
   return (
     <div className="user-input-page">
@@ -58,8 +52,8 @@ export function TakeUserInput(props: TTakeUserInputProps) {
         <div className="stack">
           <h4>Audio Options:</h4>
           <select
-            value={audioDevice}
-            onChange={(e) => setAudioDevice(e.target.value)}
+            value={audioDeviceId}
+            onChange={(e) => setAudioDeviceId(e.target.value)}
           >
             <option value="" disabled>
               Select audio device
@@ -78,8 +72,8 @@ export function TakeUserInput(props: TTakeUserInputProps) {
         <div className="stack">
           <h4>Video Options:</h4>
           <select
-            value={videoDevice}
-            onChange={(e) => setVideoDevice(e.target.value)}
+            value={videoDeviceId}
+            onChange={(e) => setVideoDeviceId(e.target.value)}
           >
             <option value="" disabled>
               Select video device

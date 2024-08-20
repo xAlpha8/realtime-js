@@ -1,18 +1,32 @@
 import React from "react";
 import { TakeUserInput } from "./TakeUserInput";
-import { TRealtimeConfig } from "../realtime-core";
+import { useRealtime } from "../realtime-react";
 import { RealtimeApp } from "./RealtimeApp";
 
 import "./App.css";
 
 export default function App() {
-  const [config, setConfig] = React.useState<TRealtimeConfig | null>(null);
+  const [canMountRealtimeApp, setCanMountRealtimeApp] = React.useState(false);
+  const { variables, ...realtime } = useRealtime();
+
+  function onSubmit() {
+    if (realtime.connectionStatus === "Disconnected") {
+      realtime.reset();
+    }
+    setCanMountRealtimeApp(true);
+  }
+
+  function onDisconnect() {
+    setCanMountRealtimeApp(false);
+  }
 
   return (
     <>
-      {!config && <TakeUserInput onSubmit={(data) => setConfig(data)} />}
-      {config && (
-        <RealtimeApp config={config} onDisconnect={() => setConfig(null)} />
+      {!canMountRealtimeApp && (
+        <TakeUserInput variables={variables} onSubmit={onSubmit} />
+      )}
+      {canMountRealtimeApp && (
+        <RealtimeApp {...realtime} onDisconnect={onDisconnect} />
       )}
     </>
   );
