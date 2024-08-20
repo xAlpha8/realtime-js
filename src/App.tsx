@@ -1,6 +1,6 @@
 import React from "react";
 import { TakeUserInput } from "./TakeUserInput";
-import { TRealtimeConfig } from "../realtime-core/shared/@types";
+import { TRealtimeConfig } from "../realtime-core";
 import { RealtimeApp } from "./RealtimeApp";
 
 import "./App.css";
