@@ -17,6 +17,15 @@ export type TRealtimeConnectionListener = (
     | MessageEvent
 ) => void;
 
+export type TRealtimeConnectionPacketReceiveCallbackEvent = {
+  prevSource: RTCRtpSynchronizationSource | null;
+  source: RTCRtpSynchronizationSource;
+};
+
+export type TRealtimeConnectionPacketReceiveCallback = (
+  event: TRealtimeConnectionPacketReceiveCallbackEvent
+) => void;
+
 /**
  * A class that establishes and manages a WebRTC connection between
  * the client/browser and a backend deployed on the Adapt Infrastructure.
@@ -47,11 +56,21 @@ export class RealtimeConnection {
   readonly _config: TRealtimeConfig;
   private _logger: TLogger | undefined;
   private readonly _logLabel = "RealtimeConnection";
+  private _isConnecting: boolean = false;
+  private _previousRTCRtpSynchronizationSource: Record<
+    number,
+    RTCRtpSynchronizationSource
+  > = {};
+  private _packetReceiveEventListeners = [] as [
+    TRealtimeConnectionPacketReceiveCallback,
+    NodeJS.Timeout,
+    number
+  ][];
+
   peerConnection: RTCPeerConnection;
   dataChannel: RTCDataChannel | null;
   mediaManager: RealtimeConnectionMediaManager;
   negotiator: RealtimeConnectionNegotiator;
-  private _isConnecting: boolean = false;
 
   constructor(config: TRealtimeConfig) {
     this._config = config;
@@ -346,5 +365,50 @@ export class RealtimeConnection {
         error,
       };
     }
+  }
+
+  addOnPacketReceiveListener(
+    callback: TRealtimeConnectionPacketReceiveCallback,
+    frequency = 1000
+  ) {
+    if (!this.peerConnection) {
+      this._logger?.error(
+        this._logLabel,
+        "Unable to add onPacketReceive listener. It looks like peerConnection is null."
+      );
+      return;
+    }
+
+    const receivers = this.peerConnection.getReceivers();
+
+    const interval = setInterval(() => {
+      receivers.forEach((receiver) => {
+        const sources = receiver.getSynchronizationSources();
+        sources.forEach((source) => {
+          callback({
+            source,
+            prevSource:
+              this._previousRTCRtpSynchronizationSource[source.source],
+          });
+          this._previousRTCRtpSynchronizationSource[source.source] = source;
+        });
+      });
+    }, frequency);
+
+    this._packetReceiveEventListeners.push([callback, interval, frequency]);
+  }
+
+  removeOnPacketReceiverListener(
+    callback: TRealtimeConnectionPacketReceiveCallback,
+    frequency = 1000
+  ) {
+    this._packetReceiveEventListeners =
+      this._packetReceiveEventListeners.filter(([_c, _i, _f]) => {
+        if (_c === callback && _f === frequency) {
+          clearInterval(_i);
+          return false;
+        }
+        return true;
+      });
   }
 }
