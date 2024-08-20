@@ -20,6 +20,7 @@ export type TRealtimeConnectionListener = (
 export type TRealtimeConnectionPacketReceiveCallbackEvent = {
   prevSource: RTCRtpSynchronizationSource | null;
   source: RTCRtpSynchronizationSource;
+  kind: string;
 };
 
 export type TRealtimeConnectionPacketReceiveCallback = (
@@ -379,13 +380,13 @@ export class RealtimeConnection {
       return;
     }
 
-    const receivers = this.peerConnection.getReceivers();
-
     const interval = setInterval(() => {
+      const receivers = this.peerConnection.getReceivers();
       receivers.forEach((receiver) => {
         const sources = receiver.getSynchronizationSources();
         sources.forEach((source) => {
           callback({
+            kind: receiver.track.kind,
             source,
             prevSource:
               this._previousRTCRtpSynchronizationSource[source.source],
@@ -410,5 +411,13 @@ export class RealtimeConnection {
         }
         return true;
       });
+  }
+
+  removeAllOnPacketReceiverListeners() {
+    this._packetReceiveEventListeners.forEach((listeners) => {
+      clearInterval(listeners[1]);
+    });
+
+    this._packetReceiveEventListeners = [];
   }
 }
