@@ -59,7 +59,7 @@ export class RealtimeConnection {
   private readonly _logLabel = "RealtimeConnection";
   private _isConnecting: boolean = false;
   private _previousRTCRtpSynchronizationSource: Record<
-    number,
+    string,
     RTCRtpSynchronizationSource
   > = {};
   private _packetReceiveEventListeners = [] as [
@@ -396,16 +396,16 @@ export class RealtimeConnection {
         const sources = receiver.getSynchronizationSources();
 
         sources.forEach((source) => {
+          const id = `receiver_id:${receiver.track.id}-source_id:${source.source}`;
           // Call the provided callback with information about the current and previous synchronization sources.
           callback({
             kind: receiver.track.kind,
             source,
-            prevSource:
-              this._previousRTCRtpSynchronizationSource[source.source],
+            prevSource: this._previousRTCRtpSynchronizationSource[id],
           });
 
           // Update the previous source map with the current source.
-          this._previousRTCRtpSynchronizationSource[source.source] = source;
+          this._previousRTCRtpSynchronizationSource[id] = source;
         });
       });
     }, frequency);
