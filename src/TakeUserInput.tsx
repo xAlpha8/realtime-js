@@ -1,7 +1,5 @@
 import React from "react";
-import { TRealtimeConfig } from "../realtime-core/shared/@types";
-import { createConfig } from "../realtime-core/create-config";
-import { ConsoleLogger } from "../realtime-core/Logger/ConsoleLogger";
+import { TRealtimeConfig, createConfig, ConsoleLogger } from "../realtime-core";
 import { useAvailableMediaDevices } from "../realtime-react/hooks/useAvailableMediaDevices";
 
 export type TTakeUserInputProps = {

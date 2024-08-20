@@ -1,6 +1,6 @@
 import { useRealtime } from "../realtime-react/hooks/useRealtime";
 import React from "react";
-import { TRealtimeConfig } from "../realtime-core/shared/@types";
+import { TRealtimeConfig } from "../realtime-core";
 import { RtAudio, RtAudioVisualizer, RtChat, RtVideo } from "../lib";
 
 export type TRealtimeAppProps = {
