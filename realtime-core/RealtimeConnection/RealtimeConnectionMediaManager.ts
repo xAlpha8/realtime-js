@@ -103,22 +103,8 @@ export class RealtimeConnectionMediaManager {
       }
     }
 
-    // Adding a track event listener to handle incoming media tracks.
-    this._peerConnection.addEventListener("track", (event: RTCTrackEvent) => {
-      const media = {
-        stream: event.streams[0],
-        track: event.track,
-      };
-
-      // Store the incoming track based on its kind (audio or video).
-      if (media.track.kind === "audio") {
-        this.remoteStreams.audio.push(media);
-      } else if (media.track.kind === "video") {
-        this.remoteStreams.video.push(media);
-      }
-    });
-
-    let setupWithoutMediaResponse: TResponse = this.setupWithoutMediaDevices();
+    const setupWithoutMediaResponse: TResponse =
+      this.setupWithoutMediaDevices();
 
     if (!setupWithoutMediaResponse.ok) {
       return {
