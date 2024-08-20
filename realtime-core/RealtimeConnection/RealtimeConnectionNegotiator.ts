@@ -1,5 +1,5 @@
 import { TLogger, TRealtimeConfig, TResponse } from "../shared/@types";
-import SDP from "../SDP";
+import { SDP } from "../SDP";
 import { fetchWithRetry, isAValidRTCSessionDescription } from "../utils";
 
 /**
