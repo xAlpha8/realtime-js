@@ -247,6 +247,7 @@ export function useRealtime() {
       listeners.forEach((listener) => removeEventListener(type, listener));
     });
     _eventListeners.current = {};
+    setRemoteStreams([]);
 
     /**
      * Removing all packet received event listeners.
