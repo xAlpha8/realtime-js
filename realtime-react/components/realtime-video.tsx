@@ -13,7 +13,11 @@ export function RealtimeVideo(props: RealtimeVideoProps) {
   useEffect(() => {
     remoteStreams.forEach((media) => {
       if (!media) return;
-      if (videoRef.current && media.track.kind === "video") {
+      if (
+        videoRef.current &&
+        media.track.kind === "video" &&
+        media.stream.active === true
+      ) {
         videoRef.current.srcObject = media.stream;
       }
     });

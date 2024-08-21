@@ -11,7 +11,11 @@ export function RealtimeAudio(props: RealtimeAudioProps) {
 
   useEffect(() => {
     remoteStreams.forEach((media) => {
-      if (audioRef.current && media.track.kind === "audio") {
+      if (
+        audioRef.current &&
+        media.track.kind === "audio" &&
+        media.stream.active === true
+      ) {
         audioRef.current.srcObject = media.stream;
       }
     });

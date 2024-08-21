@@ -35,7 +35,11 @@ export function RealtimeAudioVisualizer(props: RealtimeAudioVisualizerProps) {
     }
 
     remoteStreams.forEach((media) => {
-      if (media.track.kind === "audio" && audioVisualizerRef.current) {
+      if (
+        media.track.kind === "audio" &&
+        audioVisualizerRef.current &&
+        media.stream.active === true
+      ) {
         const audioStream =
           audioMotionRef.current!.audioCtx.createMediaStreamSource(
             media.stream
