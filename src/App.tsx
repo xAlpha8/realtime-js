@@ -10,7 +10,10 @@ export default function App() {
   const { variables, ...realtime } = useRealtime();
 
   function onSubmit() {
-    if (realtime.connectionStatus === "Disconnected") {
+    if (
+      realtime.connectionStatus === "Disconnected" ||
+      realtime.connectionStatus === "Failed"
+    ) {
       realtime.reset();
     }
     setCanMountRealtimeApp(true);

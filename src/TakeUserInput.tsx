@@ -1,6 +1,7 @@
 import { useAvailableMediaDevices } from "../realtime-react/hooks/useAvailableMediaDevices";
 import { TUseCreateConfigVariables } from "../realtime-react";
 import React from "react";
+import { ConsoleLogger } from "../realtime-core";
 
 export type TTakeUserInputProps = {
   onSubmit: () => void;
@@ -11,6 +12,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   const { onSubmit, variables } = props;
   const { availableAudioDevices, availableVideoDevices } =
     useAvailableMediaDevices();
+  const [canShareScreen, setCanShareScreen] = React.useState(false);
   const {
     audioDeviceId,
     setAudioDeviceId,
@@ -18,6 +20,8 @@ export function TakeUserInput(props: TTakeUserInputProps) {
     setVideoDeviceId,
     functionURL,
     setFunctionURL,
+    setScreenConstraints,
+    setLogger,
   } = variables;
 
   function handleFormSubmit() {
@@ -26,15 +30,30 @@ export function TakeUserInput(props: TTakeUserInputProps) {
       return;
     }
 
+    if (canShareScreen) {
+      setScreenConstraints({
+        video: true,
+      });
+    } else {
+      setScreenConstraints(undefined);
+    }
+
     onSubmit();
   }
 
   React.useEffect(() => {
-    // For testing setting default function URL on Mount.
+    // Chatbot
     setFunctionURL(
       "https://infra.getadapt.ai/run/68deae870da28f99a8562dcb962b9383"
     );
-  }, [setFunctionURL]);
+
+    // Cooking assistant
+    // setFunctionURL(
+    //   "https://infra.getadapt.ai/run/e4b93d828a74cd8e3065584dfd0d8d40"
+    // );
+
+    setLogger(new ConsoleLogger());
+  }, [setFunctionURL, setLogger]);
 
   return (
     <div className="user-input-page">
@@ -87,6 +106,20 @@ export function TakeUserInput(props: TTakeUserInputProps) {
           <small>
             If you don't want to use any video device then leave this empty.
           </small>
+        </div>
+
+        <div className="stack">
+          <div style={{ marginBottom: "4px" }}>
+            <label>
+              Screen Share&nbsp;
+              <input
+                type="checkbox"
+                checked={canShareScreen}
+                onChange={() => setCanShareScreen(!canShareScreen)}
+              />
+            </label>
+          </div>
+          <small>If you want to share your screen.</small>
         </div>
 
         <div className="stack">
