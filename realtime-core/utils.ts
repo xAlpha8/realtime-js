@@ -1,5 +1,3 @@
-import { TRealtimeConfig } from "./shared/@types";
-
 // Returns a list of all available audio devices.
 type TAllUserMedia = {
   videoInputDevices: MediaDeviceInfo[];
@@ -167,14 +165,4 @@ export function isRTCPeerConnectionIceErrorEvent(
   event: unknown
 ): event is RTCPeerConnectionIceErrorEvent {
   return event instanceof RTCPeerConnectionIceErrorEvent;
-}
-
-export function isValidConfig(obj: unknown): obj is TRealtimeConfig {
-  if (!obj) return false;
-  if (typeof obj !== "object") return false;
-  if (Array.isArray(obj)) return false;
-  if (!("functionURL" in obj)) return false;
-  if (typeof obj.functionURL !== "string" || !obj.functionURL) return false;
-
-  return true;
 }
