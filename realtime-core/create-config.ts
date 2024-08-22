@@ -13,7 +13,7 @@ import {
  */
 export type TCreateConfigInput = {
   /** The URL of the function to be used in the configuration. */
-  functionURL: string;
+  functionURL?: string;
   /** Optional URL for local testing; if both `functionURL` and `offerURL` are provided, `functionURL` is preferred. */
   offerURL?: string;
   /** Optional device ID for the audio input device. */

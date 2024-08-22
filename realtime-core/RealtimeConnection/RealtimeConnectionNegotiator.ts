@@ -37,7 +37,18 @@ export class RealtimeConnectionNegotiator {
     let offerURL = this._config.offerURL;
 
     if (!offerURL) {
-      response = await this._getOfferURL();
+      if (!this._config.functionURL) {
+        this._logger?.error(
+          this._logLabel,
+          "Neither offerURL nor functionURL is provided"
+        );
+
+        return {
+          error: "Neither offerURL nor functionURL is provided",
+        };
+      }
+
+      response = await this._getOfferURL(this._config.functionURL);
 
       if (!response.ok) {
         return {
@@ -133,13 +144,9 @@ export class RealtimeConnectionNegotiator {
    * Fetches the offer URL by making a get request to the function URL.
    * @returns {Promise<TResponse>} A promise that resolves with the offer URL.
    */
-  private async _getOfferURL(): Promise<TResponse> {
+  private async _getOfferURL(functionURL: string): Promise<TResponse> {
     try {
-      const response = await fetchWithRetry(
-        this._config.functionURL,
-        undefined,
-        7
-      );
+      const response = await fetchWithRetry(functionURL, undefined, 7);
       const payload = (await response.json()) as unknown;
 
       if (!payload || typeof payload !== "object") {

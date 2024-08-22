@@ -85,7 +85,7 @@ export type TRealtimeConfig = {
   /**
    * URL of the function to be invoked for establishing a connection.
    */
-  functionURL: string;
+  functionURL?: string;
 
   /**
    * Offer URL for local testing. If both `functionURL` and `offerURL` are provided,
