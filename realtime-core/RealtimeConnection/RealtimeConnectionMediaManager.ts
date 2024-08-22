@@ -84,12 +84,12 @@ export class RealtimeConnectionMediaManager {
     if (audioConfig || videoConfig) {
       // If we want user media access.
       setupMediaResponse = await this.setupWithMediaDevices(constraints);
-    }
 
-    if (!setupMediaResponse.ok) {
-      return {
-        error: "Failed to setup user media",
-      };
+      if (!setupMediaResponse.ok) {
+        return {
+          error: "Failed to setup user media",
+        };
+      }
     }
 
     if (screenConfig) {
@@ -103,13 +103,10 @@ export class RealtimeConnectionMediaManager {
       }
     }
 
-    const setupWithoutMediaResponse: TResponse =
-      this.setupWithoutMediaDevices();
+    setupMediaResponse = this.setupTransceiver();
 
-    if (!setupWithoutMediaResponse.ok) {
-      return {
-        error: "Failed to setup user media",
-      };
+    if (!setupMediaResponse.ok) {
+      this._logger?.warn(this._logLabel, "Unable to add transceiver.");
     }
 
     this._isSetupCompleted = true;
@@ -170,33 +167,12 @@ export class RealtimeConnectionMediaManager {
   }
 
   /**
-   * Adds the peer connection to receive audio. This is usually used when we don't want
-   * any user media access (probably when we give input as text and receive output as audio).
-   *
-   * @returns {TResponse} An object indicating the success or failure of the setup process.
+   * Setup transceiver to receive audio and video stream.
    */
-  setupWithoutMediaDevices(): TResponse {
+  setupTransceiver(): TResponse {
     try {
-      let audioTrackAdded = this.localStreams.audio.length > 0;
-      let videoTrackAdded = this.localStreams.video.length > 0;
-
-      if (!audioTrackAdded || !videoTrackAdded) {
-        for (const track of this.localStreams.screen) {
-          if (track.track.kind === "audio") {
-            audioTrackAdded = true;
-          } else if (track.track.kind === "video") {
-            videoTrackAdded = true;
-          }
-        }
-      }
-
-      if (!audioTrackAdded) {
-        this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
-      }
-
-      if (!videoTrackAdded) {
-        this._peerConnection.addTransceiver("video", { direction: "recvonly" });
-      }
+      this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
+      this._peerConnection.addTransceiver("video", { direction: "recvonly" });
 
       return {
         ok: true,
