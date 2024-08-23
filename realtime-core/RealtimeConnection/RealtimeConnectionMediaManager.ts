@@ -103,12 +103,6 @@ export class RealtimeConnectionMediaManager {
       }
     }
 
-    setupMediaResponse = this.setupTransceiver();
-
-    if (!setupMediaResponse.ok) {
-      this._logger?.warn(this._logLabel, "Unable to add transceiver.");
-    }
-
     this._isSetupCompleted = true;
 
     return {
@@ -164,25 +158,6 @@ export class RealtimeConnectionMediaManager {
     return {
       ok: true,
     };
-  }
-
-  /**
-   * Setup transceiver to receive audio and video stream.
-   */
-  setupTransceiver(): TResponse {
-    try {
-      this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
-      this._peerConnection.addTransceiver("video", { direction: "recvonly" });
-
-      return {
-        ok: true,
-      };
-    } catch (error) {
-      this._logger?.error(this._logLabel, error);
-      return {
-        error,
-      };
-    }
   }
 
   /**

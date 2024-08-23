@@ -3,7 +3,7 @@ import React from "react";
 import {
   TMedia,
   isRTCTrackEvent,
-  isValidConfig,
+  // isValidConfig,
   realtimeConnectionMachine,
   TRealtimeConnectionListener,
   TRealtimeConnectionListenerType,
@@ -179,13 +179,13 @@ export function useRealtime() {
       };
     }
 
-    if (!isValidConfig(config)) {
-      return {
-        error: {
-          msg: "Given config is not a valid config object.",
-        },
-      };
-    }
+    // if (!isValidConfig(config)) {
+    //   return {
+    //     error: {
+    //       msg: "Given config is not a valid config object.",
+    //     },
+    //   };
+    // }
 
     if (!actor.can({ type: "SETUP_CONNECTION", payload: { config } })) {
       return {
