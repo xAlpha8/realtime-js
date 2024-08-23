@@ -32,34 +32,31 @@ export class RealtimeConnectionNegotiator {
       };
     }
 
-    this._logger?.log(this._logLabel, "Offer created successfully!");
+    this._logger?.info(this._logLabel, "Offer created successfully!");
 
-    let offerURL = this._config.offerURL;
+    let offerURL: string;
 
-    if (!offerURL) {
-      if (!this._config.functionURL) {
-        this._logger?.error(
-          this._logLabel,
-          "Neither offerURL nor functionURL is provided"
-        );
-
-        return {
-          error: "Neither offerURL nor functionURL is provided",
-        };
-      }
-
-      response = await this._getOfferURL(this._config.functionURL);
-
+    if (this._config.functionURL) {
+      const response = await this._getOfferURL(this._config.functionURL);
       if (!response.ok) {
         return {
           error: "Failed during getting offer URL.",
         };
       }
-
       offerURL = response.data as string;
+    } else if (this._config.offerURL) {
+      offerURL = this._config.offerURL;
+    } else {
+      this._logger?.error(
+        this._logLabel,
+        "Neither offerURL nor functionURL is provided"
+      );
+      return {
+        error: "Neither offerURL nor functionURL is provided",
+      };
     }
 
-    this._logger?.log(this._logLabel, "Retrieve offer URL.");
+    this._logger?.info(this._logLabel, "Retrieved offer URL.");
 
     response = this._modifySDPBeforeSendingOffer();
 
@@ -69,7 +66,7 @@ export class RealtimeConnectionNegotiator {
       };
     }
 
-    this._logger?.log(this._logLabel, "Modified SDP.");
+    this._logger?.info(this._logLabel, "Modified SDP.");
 
     const newDescription = response.data as RTCSessionDescription;
 
@@ -85,7 +82,7 @@ export class RealtimeConnectionNegotiator {
       };
     }
 
-    this._logger?.log(this._logLabel, "Successfully set remote description!");
+    this._logger?.info(this._logLabel, "Successfully set remote description!");
 
     return {
       ok: true,
@@ -100,7 +97,7 @@ export class RealtimeConnectionNegotiator {
     try {
       const gatherStatePromise = new Promise((resolve) => {
         const checkIceGatheringState = () => {
-          this._logger?.log(
+          this._logger?.info(
             this._logLabel,
             `Gather State: ${this._peerConnection.iceGatheringState}`
           );

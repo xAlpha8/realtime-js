@@ -70,6 +70,9 @@ devDependencies:
   vitest:
     specifier: ^2.0.5
     version: 2.0.5(@types/node@20.14.2)(terser@5.31.1)
+  xstate:
+    specifier: ^5.17.4
+    version: 5.17.4
 
 packages:
 
@@ -3499,6 +3502,10 @@ packages:
 
   /wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
+    dev: true
+
+  /xstate@5.17.4:
+    resolution: {integrity: sha512-KM2FYVOUJ04HlOO4TY3wEXqoYPR/XsDu+ewm+IWw0vilXqND0jVfvv04tEFwp8Mkk7I/oHXM8t1Ex9xJyUS4ZA==}
     dev: true
 
   /yallist@3.1.1:
