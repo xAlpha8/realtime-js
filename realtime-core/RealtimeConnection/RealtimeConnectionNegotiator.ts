@@ -144,6 +144,7 @@ export class RealtimeConnectionNegotiator {
   private async _getOfferURL(functionURL: string): Promise<TResponse> {
     try {
       const response = await fetchWithRetry(functionURL, undefined, 7);
+
       const payload = (await response.json()) as unknown;
 
       if (!payload || typeof payload !== "object") {
@@ -279,7 +280,7 @@ export class RealtimeConnectionNegotiator {
         throw new Error("Response is not an valid RTCSessionDescriptionInit.");
       }
 
-      this._peerConnection.setRemoteDescription(answer);
+      await this._peerConnection.setRemoteDescription(answer);
 
       return {
         ok: true,

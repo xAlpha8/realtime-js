@@ -1,2 +1,2 @@
-export * from "./Navigator.mock";
-export * from "./RTCPeerConnection.mock";
+export * from "./MockedNavigator.mock";
+export * from "./MockedRTCPeerConnection.mock";
