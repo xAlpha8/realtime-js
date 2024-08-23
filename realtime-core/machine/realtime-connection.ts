@@ -19,7 +19,7 @@ export type TRealtimeConnectionMachinePossibleState = {
   End: StateValue;
 };
 
-export type TRealtimeConnenctionMachineEvents =
+export type TRealtimeConnectionMachineEvents =
   | { type: "SETUP_CONNECTION"; payload: { config: TRealtimeConfig } }
   | { type: "CONNECT" }
   | { type: "CONNECTED" }
@@ -35,7 +35,7 @@ export type TRealtimeConnectionMachineContext = {
 
 export type TRealtimeConnectionMachineActor = MachineSnapshot<
   TRealtimeConnectionMachineContext,
-  TRealtimeConnenctionMachineEvents,
+  TRealtimeConnectionMachineEvents,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Record<string, any>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,12 +47,12 @@ export type TRealtimeConnectionMachineActor = MachineSnapshot<
 >;
 
 export type TRealtimeConnectionMachineSendFn = (
-  event: TRealtimeConnenctionMachineEvents
+  event: TRealtimeConnectionMachineEvents
 ) => void;
 
 export const realtimeConnectionMachine = setup({
   types: {} as {
-    events: TRealtimeConnenctionMachineEvents;
+    events: TRealtimeConnectionMachineEvents;
     states: TRealtimeConnectionMachinePossibleState;
     context: TRealtimeConnectionMachineContext;
   },

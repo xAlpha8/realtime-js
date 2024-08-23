@@ -58,19 +58,18 @@ export type TCodecConfig = {
 
 export type TLogger = {
   /**
+   * Logs debug information with a specified label and any additional data.
+   * @param label - A descriptive label for the log entry.
+   * @param all - Additional data to log.
+   */
+  debug: (label: string, ...all: unknown[]) => void;
+
+  /**
    * Logs general information with a specified label and any additional data.
    * @param label - A descriptive label for the log entry.
    * @param all - Additional data to log.
    */
-  log: (label: string, ...all: unknown[]) => void;
-
-  /**
-   * Logs error messages with a specified label and any additional data.
-   * Typically used for logging errors or exceptions.
-   * @param label - A descriptive label for the error entry.
-   * @param all - Additional data related to the error.
-   */
-  error: (label: string, ...all: unknown[]) => void;
+  info: (label: string, ...all: unknown[]) => void;
 
   /**
    * Logs warnings with a specified label and any additional data.
@@ -79,6 +78,14 @@ export type TLogger = {
    * @param all - Additional data related to the warning.
    */
   warn: (label: string, ...all: unknown[]) => void;
+
+  /**
+   * Logs error messages with a specified label and any additional data.
+   * Typically used for logging errors or exceptions.
+   * @param label - A descriptive label for the error entry.
+   * @param all - Additional data related to the error.
+   */
+  error: (label: string, ...all: unknown[]) => void;
 };
 
 export type TRealtimeConfig = {

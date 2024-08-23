@@ -151,6 +151,41 @@ export class RealtimeConnection {
       };
     }
 
+    /* REMOVE CODEBLOCK */
+    // Print all transceivers of the peerConnection and their senders and receivers
+    this.peerConnection.getTransceivers().forEach((transceiver, index) => {
+      this._logger?.info(this._logLabel, `Transceiver ${index}:`);
+
+      const sender = transceiver.sender;
+      const receiver = transceiver.receiver;
+
+      if (sender.track) {
+        this._logger?.info(
+          this._logLabel,
+          `  Sender: ${sender.track.kind} track`
+        );
+      } else {
+        this._logger?.info(this._logLabel, "  Sender: empty");
+      }
+
+      if (receiver.track) {
+        this._logger?.info(
+          this._logLabel,
+          `  Receiver: ${receiver.track.kind} track`
+        );
+      } else {
+        this._logger?.info(this._logLabel, "  Receiver: empty");
+      }
+    });
+
+    if (this.peerConnection.getTransceivers().length === 0) {
+      this._logger?.info(
+        this._logLabel,
+        "No transceivers found in the peer connection."
+      );
+    }
+    /* REMOVE CODEBLOCK */
+
     // Negotiate and update the peer connection.
     response = await this.negotiator.negotiateAndUpdatePeerConnection();
 

@@ -1,25 +1,62 @@
-import { Logger } from "./Logger";
+import { Logger } from "./Logger"
+
+enum LogLevel {
+  DEBUG = 0,
+  INFO = 1,
+  WARN = 2,
+  ERROR = 3
+}
 
 /**
  * Implementation of the Logger that logs messages to the console.
  */
 export class ConsoleLogger extends Logger {
-  /**
-   * Logs a message with the given label to the console.
-   * @param {string} label - The label associated with the log message.
-   * @param {...unknown[]} message - The message or data to log.
-   */
-  log(label: string, ...message: unknown[]): void {
-    console.log(`[LOG] ${label}:`, ...message);
+  private static instance: ConsoleLogger | null = null;
+  private static logLevel: LogLevel = LogLevel.INFO;
+
+  private constructor() {
+    super();
   }
 
   /**
-   * Logs an error message with the given label to the console.
-   * @param {string} label - The label associated with the error message.
-   * @param {...unknown[]} message - The error message or data to log.
+   * Gets the singleton instance of ConsoleLogger.
+   * @returns {ConsoleLogger} The singleton instance.
    */
-  error(label: string, ...message: unknown[]): void {
-    console.error(`[ERROR] ${label}:`, ...message);
+  public static getLogger(): ConsoleLogger {
+    if (!ConsoleLogger.instance) {
+      ConsoleLogger.instance = new ConsoleLogger();
+    }
+    return ConsoleLogger.instance;
+  }
+
+  /**
+   * Sets the log level for the logger.
+   * @param {LogLevel} level - The log level to set.
+   */
+  public static setLogLevel(level: LogLevel): void {
+    ConsoleLogger.logLevel = level;
+  }
+
+  /**
+   * Logs a debug message with the given label to the console.
+   * @param {string} label - The label associated with the log message.
+   * @param {...unknown[]} message - The message or data to log.
+   */
+  public debug(label: string, ...message: unknown[]): void {
+    if (ConsoleLogger.logLevel <= LogLevel.DEBUG) {
+      console.debug(`[DEBUG] ${label}:`, ...message);
+    }
+  }
+
+  /**
+   * Logs an informational message with the given label to the console.
+   * @param {string} label - The label associated with the log message.
+   * @param {...unknown[]} message - The message or data to log.
+   */
+  public info(label: string, ...message: unknown[]): void {
+    if (ConsoleLogger.logLevel <= LogLevel.INFO) {
+      console.log(`[INFO] ${label}:`, ...message);
+    }
   }
 
   /**
@@ -27,7 +64,20 @@ export class ConsoleLogger extends Logger {
    * @param {string} label - The label associated with the warning message.
    * @param {...unknown[]} message - The warning message or data to log.
    */
-  warn(label: string, ...message: unknown[]): void {
-    console.warn(`[WARN] ${label}:`, ...message);
+  public warn(label: string, ...message: unknown[]): void {
+    if (ConsoleLogger.logLevel <= LogLevel.WARN) {
+      console.warn(`[WARN] ${label}:`, ...message);
+    }
+  }
+
+  /**
+   * Logs an error message with the given label to the console.
+   * @param {string} label - The label associated with the error message.
+   * @param {...unknown[]} message - The error message or data to log.
+   */
+  public error(label: string, ...message: unknown[]): void {
+    if (ConsoleLogger.logLevel <= LogLevel.ERROR) {
+      console.error(`[ERROR] ${label}:`, ...message);
+    }
   }
 }

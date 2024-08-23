@@ -37,7 +37,8 @@
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
     "vite-plugin-dts": "^3.9.1",
-    "vitest": "^2.0.5"
+    "vitest": "^2.0.5",
+    "xstate": "^5.17.4"
   },
   "dependencies": {
     "@sentry/react": "^8.17.0",
