@@ -44,6 +44,7 @@ export const MOCK_SCREEN_INPUT_DEVICE: TMockedUserDevice = {
 export function makeStreamFromUserDevices(userDevices: TMockedUserDevice[]) {
   const tracks = userDevices.map((device) => ({
     kind: device.kind.includes("audio") ? "audio" : "video",
+    stop: vi.fn(),
   }));
 
   return {

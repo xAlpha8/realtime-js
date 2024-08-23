@@ -28,6 +28,8 @@ export class MockedRTCPeerConnection {
   eventListeners: Record<string, ((e: unknown) => void)[]> = {};
   shouldFailLocalDescription = false;
   shouldFailRemoteDescription = false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dataChannel: any = null;
 
   constructor(options: Options = {}) {
     this.iceConnectionState = "new";
@@ -130,7 +132,24 @@ export class MockedRTCPeerConnection {
 
   addTransceiver = vi.fn();
 
-  createDataChannel = vi.fn();
+  createDataChannel = vi.fn(() => {
+    this.dataChannel = {
+      close: vi.fn(),
+    };
+  });
+
+  getTransceivers = vi.fn(() => {
+    return [];
+  });
+
+  getSenders = vi.fn(() => {
+    return [];
+  });
+
+  close = vi.fn(() => {
+    this.connectionState = "disconnected";
+    this.iceConnectionState = "disconnected";
+  });
 }
 
 export class MockedRTCSessionDescription {
