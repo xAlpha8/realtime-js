@@ -265,5 +265,7 @@ describe("The RealtimeConnectionMediaManager", () => {
   afterAll(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (global as any).navigator;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (global as any).MediaStream;
   });
 });

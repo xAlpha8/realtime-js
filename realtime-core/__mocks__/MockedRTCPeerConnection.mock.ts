@@ -17,6 +17,14 @@ export class MockedRTCPeerConnection {
     | "disconnected"
     | "closed";
   iceGatheringState: "new" | "gathering" | "complete";
+  connectionState:
+    | "new"
+    | "connecting"
+    | "connected"
+    | "completed"
+    | "failed"
+    | "disconnected"
+    | "closed";
   eventListeners: Record<string, ((e: unknown) => void)[]> = {};
   shouldFailLocalDescription = false;
   shouldFailRemoteDescription = false;
@@ -24,6 +32,7 @@ export class MockedRTCPeerConnection {
   constructor(options: Options = {}) {
     this.iceConnectionState = "new";
     this.iceGatheringState = "new";
+    this.connectionState = "new";
     this.shouldFailLocalDescription =
       options.shouldFailLocalDescription || false;
     this.shouldFailRemoteDescription =
@@ -56,6 +65,7 @@ export class MockedRTCPeerConnection {
     const offer = Promise.resolve({ type: "offer", sdp: "mock-sdp-offer" });
 
     this.iceConnectionState = "checking";
+    this.connectionState = "connecting";
     this.iceGatheringState = "gathering";
 
     // Dispatching icegatherstatechange event
@@ -64,6 +74,7 @@ export class MockedRTCPeerConnection {
 
     setTimeout(() => {
       this.iceConnectionState = "connected";
+      this.connectionState = "connected";
 
       // Dispatching iceconnectionstatechange event
       this.dispatchEvent({ type: "iceconnectionstatechange" });
@@ -118,6 +129,8 @@ export class MockedRTCPeerConnection {
   addTrack = vi.fn();
 
   addTransceiver = vi.fn();
+
+  createDataChannel = vi.fn();
 }
 
 export class MockedRTCSessionDescription {
