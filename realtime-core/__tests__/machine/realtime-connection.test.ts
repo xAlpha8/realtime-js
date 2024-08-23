@@ -7,7 +7,6 @@ import {
   getMockedNavigator,
 } from "../../__mocks__";
 import { createConfig } from "../../create-config";
-import { ConsoleLogger } from "../../Logger";
 import { getMockedFetch } from "../../__mocks__/MockedFetch.mock";
 import { createActor } from "xstate";
 import { realtimeConnectionMachine } from "../../machine";
@@ -28,7 +27,8 @@ vi.mock("../../utils", async () => {
 
 describe("The RealtimeConnection Machine", () => {
   beforeAll(() => {
-    global.MediaStream = vi.fn();
+    // @ts-expect-error Mocking only the function that we need.
+    global.MediaStream = vi.fn((tracks) => ({ getTracks: () => tracks }));
     const navigator = getMockedNavigator({
       userDevices: [MOCK_VIDEO_INPUT_DEVICE, MOCK_AUDIO_INPUT_DEVICE],
     });
@@ -117,36 +117,342 @@ describe("The RealtimeConnection Machine", () => {
     expect(currentState).toBe("SetupCompleted");
   });
 
-  test(
-    "should able to connect if current config is provided.",
-    async () => {
-      const config = createConfig({
-        functionURL: "https://infra.adapt.ai",
-        audioDeviceId: "123",
-        videoDeviceId: "123",
-        logger: ConsoleLogger.getLogger(),
-      });
+  test("should be in Failed state if unable to connect to the remote connection.", async () => {
+    // If we set the first parameter as false, then the fetch will reject all the request
+    // it receives. Meaning the machine will failed to connect to the remote connection.
+    global.f.update(false, undefined, {});
 
-      const actor = createActor(realtimeConnectionMachine);
-      let currentState = "";
+    const config = createConfig({
+      functionURL: "https://infra.adapt.ai",
+      audioDeviceId: "123",
+      videoDeviceId: "123",
+    });
 
-      actor.subscribe((snapshot) => {
-        currentState = snapshot.value;
-      });
+    const actor = createActor(realtimeConnectionMachine);
+    let currentState = "";
 
-      actor.start();
-      // In the beginning the state should be Init.
-      expect(currentState).toBe("Init");
+    actor.subscribe((snapshot) => {
+      currentState = snapshot.value;
+    });
 
-      // If we pass the payload then it should transition to "SetupCompleted"
-      actor.send({ type: "SETUP_CONNECTION", payload: { config } });
-      expect(currentState).toBe("SetupCompleted");
+    actor.start();
+    // In the beginning the state should be Init.
+    expect(currentState).toBe("Init");
 
-      actor.send({ type: "CONNECT" });
-      expect(currentState).toBe("Connecting");
-    },
-    { timeout: 30000 }
-  );
+    // If we pass the payload then it should transition to "SetupCompleted"
+    actor.send({ type: "SETUP_CONNECTION", payload: { config } });
+    expect(currentState).toBe("SetupCompleted");
+
+    actor.send({ type: "CONNECT" });
+    expect(currentState).toBe("Connecting");
+
+    let interval: NodeJS.Timeout | null = null;
+
+    await new Promise((resolve) => {
+      interval = setInterval(() => {
+        // From Connecting the machine can only transition
+        // to Connected or Failed.
+        if (currentState === "Failed" || currentState === "Connected") {
+          resolve("");
+        }
+      }, 1000);
+    });
+
+    if (interval) {
+      clearInterval(interval);
+    }
+
+    expect(currentState).toBe("Failed");
+  });
+
+  test("should be in Connected state if connected to the remote connection.", async () => {
+    global.f.update(true, undefined, {
+      address: "https://us.adapt.ai:8080/offer",
+    });
+
+    const config = createConfig({
+      functionURL: "https://infra.adapt.ai",
+      audioDeviceId: "123",
+      videoDeviceId: "123",
+    });
+
+    const actor = createActor(realtimeConnectionMachine);
+    let currentState = "";
+
+    actor.subscribe((snapshot) => {
+      currentState = snapshot.value;
+    });
+
+    actor.start();
+    // In the beginning the state should be Init.
+    expect(currentState).toBe("Init");
+
+    // If we pass the payload then it should transition to "SetupCompleted"
+    actor.send({ type: "SETUP_CONNECTION", payload: { config } });
+    expect(currentState).toBe("SetupCompleted");
+
+    actor.send({ type: "CONNECT" });
+    expect(currentState).toBe("Connecting");
+
+    let interval: NodeJS.Timeout | null = null;
+
+    await new Promise((resolve) => {
+      interval = setInterval(() => {
+        // From Connecting the machine can only transition
+        // to Connected or Failed.
+        if (currentState === "Failed" || currentState === "Connected") {
+          resolve("");
+        }
+      }, 1000);
+    });
+
+    if (interval) {
+      clearInterval(interval);
+    }
+
+    expect(currentState).toBe("Connected");
+  });
+
+  test("should able to disconnect from Connected state.", async () => {
+    global.f.update(true, undefined, {
+      address: "https://us.adapt.ai:8080/offer",
+    });
+
+    const config = createConfig({
+      functionURL: "https://infra.adapt.ai",
+      audioDeviceId: "123",
+      videoDeviceId: "123",
+    });
+
+    const actor = createActor(realtimeConnectionMachine);
+    let currentState = "";
+
+    actor.subscribe((snapshot) => {
+      currentState = snapshot.value;
+    });
+
+    actor.start();
+    // In the beginning the state should be Init.
+    expect(currentState).toBe("Init");
+
+    // If we pass the payload then it should transition to "SetupCompleted"
+    actor.send({ type: "SETUP_CONNECTION", payload: { config } });
+    expect(currentState).toBe("SetupCompleted");
+
+    actor.send({ type: "CONNECT" });
+    expect(currentState).toBe("Connecting");
+
+    let interval: NodeJS.Timeout | null = null;
+
+    await new Promise((resolve) => {
+      interval = setInterval(() => {
+        // From Connecting the machine can only transition
+        // to Connected or Failed.
+        if (currentState === "Failed" || currentState === "Connected") {
+          resolve("");
+        }
+      }, 1000);
+    });
+
+    if (interval) {
+      clearInterval(interval);
+    }
+
+    expect(currentState).toBe("Connected");
+
+    actor.send({ type: "DISCONNECT" });
+    expect(currentState).toBe("Disconnecting");
+
+    await new Promise((resolve) => {
+      interval = setInterval(() => {
+        // From Disconnecting the machine can only transition
+        // to Disconnected or Failed.
+        if (currentState === "Failed" || currentState === "Disconnected") {
+          resolve("");
+        }
+      }, 1000);
+    });
+
+    if (interval) {
+      clearInterval(interval);
+    }
+
+    expect(currentState).toBe("Disconnected");
+  });
+
+  test("shouldn't reset from Connected state.", async () => {
+    global.f.update(true, undefined, {
+      address: "https://us.adapt.ai:8080/offer",
+    });
+
+    const config = createConfig({
+      functionURL: "https://infra.adapt.ai",
+      audioDeviceId: "123",
+      videoDeviceId: "123",
+    });
+
+    const actor = createActor(realtimeConnectionMachine);
+    let currentState = "";
+
+    actor.subscribe((snapshot) => {
+      currentState = snapshot.value;
+    });
+
+    actor.start();
+    // In the beginning the state should be Init.
+    expect(currentState).toBe("Init");
+
+    // If we pass the payload then it should transition to "SetupCompleted"
+    actor.send({ type: "SETUP_CONNECTION", payload: { config } });
+    expect(currentState).toBe("SetupCompleted");
+
+    actor.send({ type: "CONNECT" });
+    expect(currentState).toBe("Connecting");
+
+    let interval: NodeJS.Timeout | null = null;
+
+    await new Promise((resolve) => {
+      interval = setInterval(() => {
+        // From Connecting the machine can only transition
+        // to Connected or Failed.
+        if (currentState === "Failed" || currentState === "Connected") {
+          resolve("");
+        }
+      }, 1000);
+    });
+
+    if (interval) {
+      clearInterval(interval);
+    }
+
+    expect(currentState).toBe("Connected");
+
+    actor.send({ type: "RESET" });
+    // From Connected state machine cannot be reset.
+    // To reset first we need to disconnect.
+    expect(currentState).toBe("Connected");
+  });
+
+  test("should able to reset from Failed state.", async () => {
+    // If we set the first parameter as false, then the fetch will reject all the request
+    // it receives. Meaning the machine will failed to connect to the remote connection.
+    global.f.update(false, undefined, {});
+
+    const config = createConfig({
+      functionURL: "https://infra.adapt.ai",
+      audioDeviceId: "123",
+      videoDeviceId: "123",
+    });
+
+    const actor = createActor(realtimeConnectionMachine);
+    let currentState = "";
+
+    actor.subscribe((snapshot) => {
+      currentState = snapshot.value;
+    });
+
+    actor.start();
+    // In the beginning the state should be Init.
+    expect(currentState).toBe("Init");
+
+    // If we pass the payload then it should transition to "SetupCompleted"
+    actor.send({ type: "SETUP_CONNECTION", payload: { config } });
+    expect(currentState).toBe("SetupCompleted");
+
+    actor.send({ type: "CONNECT" });
+    expect(currentState).toBe("Connecting");
+
+    let interval: NodeJS.Timeout | null = null;
+
+    await new Promise((resolve) => {
+      interval = setInterval(() => {
+        // From Connecting the machine can only transition
+        // to Connected or Failed.
+        if (currentState === "Failed" || currentState === "Connected") {
+          resolve("");
+        }
+      }, 1000);
+    });
+
+    if (interval) {
+      clearInterval(interval);
+    }
+
+    expect(currentState).toBe("Failed");
+
+    actor.send({ type: "RESET" });
+    expect(currentState).toBe("Init");
+  });
+
+  test("should able to reset from Disconnected state.", async () => {
+    global.f.update(true, undefined, {
+      address: "https://us.adapt.ai:8080/offer",
+    });
+
+    const config = createConfig({
+      functionURL: "https://infra.adapt.ai",
+      audioDeviceId: "123",
+      videoDeviceId: "123",
+    });
+
+    const actor = createActor(realtimeConnectionMachine);
+    let currentState = "";
+
+    actor.subscribe((snapshot) => {
+      currentState = snapshot.value;
+    });
+
+    actor.start();
+    // In the beginning the state should be Init.
+    expect(currentState).toBe("Init");
+
+    // If we pass the payload then it should transition to "SetupCompleted"
+    actor.send({ type: "SETUP_CONNECTION", payload: { config } });
+    expect(currentState).toBe("SetupCompleted");
+
+    actor.send({ type: "CONNECT" });
+    expect(currentState).toBe("Connecting");
+
+    let interval: NodeJS.Timeout | null = null;
+
+    await new Promise((resolve) => {
+      interval = setInterval(() => {
+        // From Connecting the machine can only transition
+        // to Connected or Failed.
+        if (currentState === "Failed" || currentState === "Connected") {
+          resolve("");
+        }
+      }, 1000);
+    });
+
+    if (interval) {
+      clearInterval(interval);
+    }
+
+    expect(currentState).toBe("Connected");
+
+    actor.send({ type: "DISCONNECT" });
+    expect(currentState).toBe("Disconnecting");
+
+    await new Promise((resolve) => {
+      interval = setInterval(() => {
+        // From Disconnecting the machine can only transition
+        // to Disconnected or Failed.
+        if (currentState === "Failed" || currentState === "Disconnected") {
+          resolve("");
+        }
+      }, 1000);
+    });
+
+    if (interval) {
+      clearInterval(interval);
+    }
+
+    expect(currentState).toBe("Disconnected");
+
+    actor.send({ type: "RESET" });
+    expect(currentState).toBe("Init");
+  });
 
   afterAll(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
