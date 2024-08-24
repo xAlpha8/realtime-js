@@ -1,4 +1,10 @@
-import { TLogger, TMedia, TRealtimeConfig, TResponse } from "../shared/@types";
+import {
+  TLogger,
+  TMedia,
+  TRealtimeConfig,
+  TResponse,
+  TTransceiver,
+} from "../shared/@types";
 
 /**
  * This class manages local and remote media streams, including audio, video
@@ -103,10 +109,12 @@ export class RealtimeConnectionMediaManager {
       }
     }
 
-    setupMediaResponse = this.setupTransceiver();
+    if (this._config.addTransceivers) {
+      setupMediaResponse = this.setupTransceiver(this._config.addTransceivers);
 
-    if (!setupMediaResponse.ok) {
-      this._logger?.warn(this._logLabel, "Unable to add transceiver.");
+      if (!setupMediaResponse.ok) {
+        this._logger?.warn(this._logLabel, "Unable to add transceiver.");
+      }
     }
 
     this._isSetupCompleted = true;
@@ -169,10 +177,16 @@ export class RealtimeConnectionMediaManager {
   /**
    * Setup transceiver to receive audio and video stream.
    */
-  setupTransceiver(): TResponse {
+  setupTransceiver(transceiversToAdd: TTransceiver[]): TResponse {
     try {
-      this._peerConnection.addTransceiver("audio", { direction: "recvonly" });
-      this._peerConnection.addTransceiver("video", { direction: "recvonly" });
+      if (Array.isArray(transceiversToAdd) && transceiversToAdd.length > 0) {
+        transceiversToAdd.forEach((transceiver) => {
+          this._peerConnection.addTransceiver(
+            transceiver.kind,
+            transceiver.options
+          );
+        });
+      }
 
       return {
         ok: true,
