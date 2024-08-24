@@ -33,8 +33,8 @@ describe("The RealtimeConnection Machine", () => {
       userDevices: [MOCK_VIDEO_INPUT_DEVICE, MOCK_AUDIO_INPUT_DEVICE],
     });
     global.navigator = navigator as never;
-    global.f = getMockedFetch();
-    global.fetch = global.f.fetch;
+    global.patchMockedFetch = getMockedFetch();
+    global.fetch = global.patchMockedFetch.fetch;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.RTCSessionDescription = MockedRTCSessionDescription as any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -120,7 +120,7 @@ describe("The RealtimeConnection Machine", () => {
   test("should be in Failed state if unable to connect to the remote connection.", async () => {
     // If we set the first parameter as false, then the fetch will reject all the request
     // it receives. Meaning the machine will failed to connect to the remote connection.
-    global.f.update(false, undefined, {});
+    global.patchMockedFetch.update(false, undefined, {});
 
     const config = createConfig({
       functionURL: "https://infra.adapt.ai",
@@ -166,7 +166,7 @@ describe("The RealtimeConnection Machine", () => {
   });
 
   test("should be in Connected state if connected to the remote connection.", async () => {
-    global.f.update(true, undefined, {
+    global.patchMockedFetch.update(true, undefined, {
       address: "https://us.adapt.ai:8080/offer",
     });
 
@@ -214,7 +214,7 @@ describe("The RealtimeConnection Machine", () => {
   });
 
   test("should able to disconnect from Connected state.", async () => {
-    global.f.update(true, undefined, {
+    global.patchMockedFetch.update(true, undefined, {
       address: "https://us.adapt.ai:8080/offer",
     });
 
@@ -281,7 +281,7 @@ describe("The RealtimeConnection Machine", () => {
   });
 
   test("shouldn't reset from Connected state.", async () => {
-    global.f.update(true, undefined, {
+    global.patchMockedFetch.update(true, undefined, {
       address: "https://us.adapt.ai:8080/offer",
     });
 
@@ -336,7 +336,7 @@ describe("The RealtimeConnection Machine", () => {
   test("should able to reset from Failed state.", async () => {
     // If we set the first parameter as false, then the fetch will reject all the request
     // it receives. Meaning the machine will failed to connect to the remote connection.
-    global.f.update(false, undefined, {});
+    global.patchMockedFetch.update(false, undefined, {});
 
     const config = createConfig({
       functionURL: "https://infra.adapt.ai",
@@ -385,7 +385,7 @@ describe("The RealtimeConnection Machine", () => {
   });
 
   test("should able to reset from Disconnected state.", async () => {
-    global.f.update(true, undefined, {
+    global.patchMockedFetch.update(true, undefined, {
       address: "https://us.adapt.ai:8080/offer",
     });
 
