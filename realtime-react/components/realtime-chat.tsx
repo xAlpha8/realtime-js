@@ -51,20 +51,21 @@ export function RealtimeChat(props: RealtimeChatProps) {
   }, [addEventListeners, removeEventListeners]);
 
   return (
-    <div className="chat-container">
-      <section ref={chatRef} className="chat-messages-container">
+    <div className="rt-chat-container">
+      <section ref={chatRef} className="rt-chat-messages-container">
         {messages.map((msg, index) => {
           const data = msg.content || msg.text;
           if (!data) return null;
           return (
-            <div key={index} className="chat-message">
+            <div key={index} className="rt-chat-message">
               <b>Bot</b> {data}
             </div>
           );
         })}
       </section>
-      <div style={{ marginTop: 10 }}>
+      <div className="rt-chat-input-container" style={{ marginTop: 10 }}>
         <input
+          className="rt-chat-input"
           placeholder="Type a message & hit Enter"
           ref={input}
           onKeyDown={(e) => {

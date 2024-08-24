@@ -24,10 +24,10 @@ export function RealtimeVideo(props: RealtimeVideoProps) {
   }, [remoteStreams]);
 
   return (
-    <div className="video-container">
-      <div className="video-wrapper">
+    <div className="rt-video-container">
+      <div className="rt-video-wrapper">
         <video
-          className="video"
+          className="rt-video"
           ref={videoRef}
           autoPlay={true}
           playsInline={true}

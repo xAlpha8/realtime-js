@@ -21,5 +21,5 @@ export function RealtimeAudio(props: RealtimeAudioProps) {
     });
   }, [remoteStreams]);
 
-  return <audio ref={audioRef} autoPlay={true}></audio>;
+  return <audio className="rt-audio" ref={audioRef} autoPlay={true}></audio>;
 }

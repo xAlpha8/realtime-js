@@ -59,13 +59,13 @@ button {
   height: 100vh;
 }
 
-.audio-container {
+.rt-audio-visualizer {
   width: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.audio-container canvas {
+.rt-audio-visualizer canvas {
  height: 120px;
  width: 100%; 
 }
@@ -77,27 +77,27 @@ button {
   padding: 1rem;
 }
 
-.video-container {
+.rt-video-container {
   flex: 1;
   padding: 8px;
   display: flex;
   overflow: hidden;
 }
 
-.video-wrapper {
+.rt-video-wrapper {
   flex: 1;
   border-radius: 8px;
   overflow: hidden;
 }
 
-.video {
+.rt-video {
   object-fit: contain;
   object-position: center;
   height: 100%;
   width: 100%;
 }
 
-.chat-container {
+.rt-chat-container {
   position: fixed;
   top: 100px;
   left: 20px;
@@ -109,6 +109,6 @@ button {
   border-radius: 8px;
 }
 
-.chat-message {
+.rt-chat-message {
   padding: 2px 0;
 }

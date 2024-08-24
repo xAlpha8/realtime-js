@@ -57,5 +57,5 @@ export function RealtimeAudioVisualizer(props: RealtimeAudioVisualizerProps) {
     };
   }, [remoteStreams]);
 
-  return <div ref={audioVisualizerRef}></div>;
+  return <div className="rt-audio-visualizer" ref={audioVisualizerRef}></div>;
 }
