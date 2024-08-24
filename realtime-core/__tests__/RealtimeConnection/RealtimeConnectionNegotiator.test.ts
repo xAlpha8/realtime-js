@@ -22,14 +22,16 @@ vi.mock("../../utils", async () => {
 
 describe("The RealtimeConnectionNegotiator", () => {
   beforeAll(() => {
-    global.f = getMockedFetch();
-    global.fetch = global.f.fetch;
+    global.patchMockedFetch = getMockedFetch();
+    global.fetch = global.patchMockedFetch.fetch;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.RTCSessionDescription = MockedRTCSessionDescription as any;
   });
 
   test("should return error if failed to setLocalDescription.", async () => {
-    global.f.update(true, undefined, { address: "https://infra.adapt.ai" });
+    global.patchMockedFetch.update(true, undefined, {
+      address: "https://infra.adapt.ai",
+    });
     const peerConnection = new MockedRTCPeerConnection({
       shouldFailLocalDescription: true,
     });
@@ -70,7 +72,7 @@ describe("The RealtimeConnectionNegotiator", () => {
   });
 
   test("should return error if failed to get offer URL", async () => {
-    global.f.update(false, "some random error", 0);
+    global.patchMockedFetch.update(false, "some random error", 0);
 
     const peerConnection = new MockedRTCPeerConnection();
 
@@ -90,14 +92,13 @@ describe("The RealtimeConnectionNegotiator", () => {
     expect(response.error).toBe("Failed during getting offer URL.");
 
     // Also it should called fetch more than 3 times
-    expect(global.f.totalCalled()).toBeGreaterThan(3);
-
-    // Resetting called
-    global.f.update(true, "some random error", undefined, 0);
+    expect(global.patchMockedFetch.totalCalled()).toBeGreaterThan(3);
   });
 
   test("should return error if failed to setRemoteDescription.", async () => {
-    global.f.update(true, undefined, { address: "https://infra.adapt.ai" });
+    global.patchMockedFetch.update(true, undefined, {
+      address: "https://infra.adapt.ai",
+    });
     const peerConnection = new MockedRTCPeerConnection({
       shouldFailRemoteDescription: true,
     });
@@ -120,7 +121,9 @@ describe("The RealtimeConnectionNegotiator", () => {
   });
 
   test("should able to negotiate and update peer connection.", async () => {
-    global.f.update(true, undefined, { address: "https://infra.adapt.ai" });
+    global.patchMockedFetch.update(true, undefined, {
+      address: "https://infra.adapt.ai",
+    });
     const peerConnection = new MockedRTCPeerConnection();
 
     const config = {
@@ -138,7 +141,7 @@ describe("The RealtimeConnectionNegotiator", () => {
   });
 
   test("should able to negotiate and update peer connection if offer url is given.", async () => {
-    global.f.update(true, undefined, { ok: true });
+    global.patchMockedFetch.update(true, undefined, { ok: true });
 
     const peerConnection = new MockedRTCPeerConnection();
 
@@ -160,7 +163,7 @@ describe("The RealtimeConnectionNegotiator", () => {
      * total fetch call should be 1 because we are calling fetch to send the offer
      * to the server/backend.
      */
-    expect(global.f.totalCalled()).toBe(1);
+    expect(global.patchMockedFetch.totalCalled()).toBe(1);
   });
 
   afterAll(() => {

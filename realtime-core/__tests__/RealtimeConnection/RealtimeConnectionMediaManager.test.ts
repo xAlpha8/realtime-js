@@ -183,6 +183,20 @@ describe("The RealtimeConnectionMediaManager", () => {
 
     const config = createConfig({
       functionURL: "https://infra.adapt.ai",
+      addTransceivers: [
+        {
+          kind: "audio",
+          options: {
+            direction: "recvonly",
+          },
+        },
+        {
+          kind: "video",
+          options: {
+            direction: "recvonly",
+          },
+        },
+      ],
     });
 
     const mediaManager = new RealtimeConnectionMediaManager(

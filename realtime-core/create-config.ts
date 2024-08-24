@@ -6,6 +6,7 @@ import {
   TVideoConfig,
   TVideoTransform,
   TLogger,
+  TTransceiver,
 } from "./shared/@types";
 
 /**
@@ -38,6 +39,8 @@ export type TCreateConfigInput = {
   rtcConfig?: RTCConfiguration;
   /** Optional logger for logging purposes. */
   logger?: TLogger;
+  /** Optional Transceivers to add */
+  addTransceivers?: TTransceiver[];
 };
 
 /**
@@ -67,6 +70,7 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
     logger,
     audioDeviceId,
     videoDeviceId,
+    addTransceivers,
   } = input;
 
   // Ensure that either functionURL or offerURL is provided
@@ -107,6 +111,7 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
     video,
     screen: screenConstraints,
     logger,
+    addTransceivers,
   };
 
   // Add codec configurations if provided

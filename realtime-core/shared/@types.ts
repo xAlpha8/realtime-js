@@ -56,6 +56,17 @@ export type TCodecConfig = {
   video?: TVideoCodec;
 };
 
+export type TTransceiver = {
+  /**
+   * Transceiver kind.
+   */
+  kind: "audio" | "video";
+  /**
+   * Init options for the transceiver.
+   */
+  options: RTCRtpTransceiverInit;
+};
+
 export type TLogger = {
   /**
    * Logs debug information with a specified label and any additional data.
@@ -114,6 +125,24 @@ export type TRealtimeConfig = {
    * Audio and video codec settings, such as preferred codec types.
    */
   codec?: TCodecConfig;
+
+  /**
+   * To add transceivers.
+   *
+   * @example
+   * config = {
+   *  functionURL: "https://infra.adapt.ai",
+   *  addTransceivers: [
+   *    {
+   *      kind: "audio",
+   *      options: {
+   *        direction: "recvonly"
+   *      }
+   *    }
+   *  ]
+   * }
+   */
+  addTransceivers?: TTransceiver[];
 
   /**
    * Configuration for video transformations, such as filters or effects applied to the video stream.
