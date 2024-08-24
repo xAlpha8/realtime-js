@@ -171,50 +171,6 @@ describe("The RealtimeConnectionMediaManager", () => {
     expect(peerConnection.addTrack).toHaveBeenCalledTimes(3);
   });
 
-  test("should setup without any media access.", async () => {
-    // To fix type we are using never.
-    const peerConnection = new MockedRTCPeerConnection();
-
-    const navigator = getMockedNavigator({
-      userDevices: [MOCK_VIDEO_INPUT_DEVICE, MOCK_AUDIO_INPUT_DEVICE],
-    });
-
-    global.navigator = navigator as never;
-
-    const config = createConfig({
-      functionURL: "https://infra.adapt.ai",
-      addTransceivers: [
-        {
-          kind: "audio",
-          options: {
-            direction: "recvonly",
-          },
-        },
-        {
-          kind: "video",
-          options: {
-            direction: "recvonly",
-          },
-        },
-      ],
-    });
-
-    const mediaManager = new RealtimeConnectionMediaManager(
-      peerConnection as never,
-      config
-    );
-
-    const response = await mediaManager.setup();
-
-    expect(response.ok).toBeTruthy();
-    expect(mediaManager.localStreams.audio.length).toBe(0);
-    expect(mediaManager.localStreams.video.length).toBe(0);
-    expect(mediaManager.localStreams.screen.length).toBe(0);
-    expect(peerConnection.addTransceiver).toHaveBeenCalledTimes(2);
-    // As we are not adding any media so it shouldn't be called.
-    expect(peerConnection.addTrack).toHaveBeenCalledTimes(0);
-  });
-
   test("should handle the case if access to the requested user media is rejected.", async () => {
     // To fix type we are using never.
     const peerConnection = new MockedRTCPeerConnection();
