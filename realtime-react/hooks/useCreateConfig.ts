@@ -4,6 +4,7 @@ import {
   Logger,
   TAudioCodec,
   TRealtimeConfig,
+  TTransceiver,
   TVideoCodec,
   TVideoTransform,
 } from "../../realtime-core";
@@ -48,6 +49,8 @@ export type TUseCreateConfigVariables = {
   >;
   logger?: Logger;
   setLogger: React.Dispatch<React.SetStateAction<Logger | undefined>>;
+  addTransceivers: TTransceiver[];
+  setTransceivers: React.Dispatch<React.SetStateAction<TTransceiver[]>>;
 };
 
 /**
@@ -85,6 +88,7 @@ export function useCreateConfig(): TUseCreateConfigReturn {
     React.useState<RTCDataChannelInit>();
   const [rtcConfig, setRTCConfig] = React.useState<RTCConfiguration>();
   const [logger, setLogger] = React.useState<Logger>();
+  const [addTransceivers, setTransceivers] = React.useState<TTransceiver[]>([]);
 
   /**
    * Generates the real-time configuration object based on the current state.
@@ -106,6 +110,7 @@ export function useCreateConfig(): TUseCreateConfigReturn {
       videoCodec,
       videoConstraints,
       videoTransform,
+      addTransceivers,
     });
   }, [
     functionURL,
@@ -121,6 +126,7 @@ export function useCreateConfig(): TUseCreateConfigReturn {
     videoCodec,
     videoConstraints,
     videoTransform,
+    addTransceivers,
   ]);
 
   return {
@@ -149,6 +155,8 @@ export function useCreateConfig(): TUseCreateConfigReturn {
     rtcConfig,
     setRTCConfig,
     logger,
+    addTransceivers,
+    setTransceivers,
     setLogger,
     getConfig,
   };

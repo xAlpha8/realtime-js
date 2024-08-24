@@ -52,7 +52,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
     //   "https://infra.getadapt.ai/run/e4b93d828a74cd8e3065584dfd0d8d40"
     // );
 
-    setLogger(new ConsoleLogger());
+    setLogger(ConsoleLogger.getLogger());
   }, [setFunctionURL, setLogger]);
 
   return (
