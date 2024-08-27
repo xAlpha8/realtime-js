@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 
 import { isMessageEvent } from "../../realtime-core/utils";
-import { DataChannel } from "../hooks";
+import { DataChannel } from "../../realtime-core";
 
 export type RealtimeChatProps = {
-  dataChannel: DataChannel;
+  dataChannel: DataChannel<unknown>;
 };
 
 export function RealtimeChat(props: RealtimeChatProps) {

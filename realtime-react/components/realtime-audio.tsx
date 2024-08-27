@@ -1,25 +1,33 @@
 import { useEffect, useRef } from "react";
-import { TMedia } from "../../realtime-core";
+import { Track } from "../../realtime-core";
 
 export type RealtimeAudioProps = {
-  tracks: TMedia[];
+  track: Track | null;
 };
 
 export function RealtimeAudio(props: RealtimeAudioProps) {
-  const { tracks } = props;
+  const { track } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  useEffect(() => {
-    tracks.forEach((media) => {
-      if (
-        audioRef.current &&
-        media.track.kind === "audio" &&
-        media.stream.active === true
-      ) {
-        audioRef.current.srcObject = media.stream;
-      }
-    });
-  }, [tracks]);
+  function pauseAudio() {
+    track?.pause();
+  }
 
-  return <audio className="rt-audio" ref={audioRef} autoPlay={true}></audio>;
+  function resumeAudio() {
+    track?.resume();
+  }
+
+  useEffect(() => {
+    if (track && audioRef.current) {
+      audioRef.current.srcObject = track.stream;
+    }
+  }, [track]);
+
+  return (
+    <div>
+      <audio className="rt-audio" ref={audioRef} autoPlay={true}></audio>
+      <button onClick={pauseAudio}>Mute Audio</button>
+      <button onClick={resumeAudio}>Resume Audio</button>
+    </div>
+  );
 }

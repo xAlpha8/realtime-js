@@ -14,7 +14,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
   const [videoDeviceId, setVideoDeviceId] = React.useState("");
   const [functionURL, setFunctionURL] = React.useState(
-    "https://infra.getadapt.ai/run/68deae870da28f99a8562dcb962b9383"
+    "https://us0-dev.getadapt.ai/run/3e75182729bb655682854a6e6971238b"
   );
 
   function handleFormSubmit() {

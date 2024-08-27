@@ -1,13 +1,13 @@
 import { useActor } from "@xstate/react";
 import React from "react";
 import {
-  TMedia,
   isRTCTrackEvent,
   realtimeConnectionMachine,
   TRealtimeConnectionListener,
   TRealtimeConnectionListenerType,
-  TRealtimeConnectionPacketReceiveCallback,
   TRealtimeConfig,
+  Track,
+  WebRTCDataChannel,
 } from "../../realtime-core";
 
 export type TUseWebRTCReturn<T = unknown> = {
@@ -22,44 +22,11 @@ export type TUseWebRTCOptions = {
   config: TRealtimeConfig;
 };
 
-export class DataChannel {
-  private _rtcDataChannel: RTCDataChannel;
-
-  constructor(rtcDataChannel: RTCDataChannel) {
-    this._rtcDataChannel = rtcDataChannel;
-  }
-
-  addEventListener(
-    type: "message" | "close" | "open",
-    listener: (this: RTCDataChannel, ev: MessageEvent | Event) => void
-  ) {
-    this._rtcDataChannel.addEventListener(type, listener);
-  }
-
-  removeEventListener(
-    type: "message" | "close" | "open",
-    listener: (this: RTCDataChannel, ev: MessageEvent | Event) => void
-  ) {
-    this._rtcDataChannel.addEventListener(type, listener);
-  }
-
-  send(obj: object) {
-    try {
-      this._rtcDataChannel.send(JSON.stringify(obj));
-    } catch (error) {
-      console.error(error);
-    }
-  }
-}
-
-export class Track {}
-
 export function useWebRTC(options: TUseWebRTCOptions) {
   const [actor, send] = useActor(realtimeConnectionMachine);
-  const [remoteStreams, setRemoteStreams] = React.useState<TMedia[]>([]);
-  const [dataChannel, setDataChannel] = React.useState<DataChannel | null>(
-    null
-  );
+  const [remoteTracks, setRemoteTracks] = React.useState<Track[]>([]);
+  const [dataChannel, setDataChannel] =
+    React.useState<WebRTCDataChannel | null>(null);
 
   const { config } = options;
 
@@ -74,10 +41,8 @@ export function useWebRTC(options: TUseWebRTCOptions) {
       return;
     }
 
-    setRemoteStreams((prev) => [
-      ...prev,
-      { stream: event.streams[0], track: event.track },
-    ]);
+    const track = new Track(event.track, "remote");
+    setRemoteTracks((prev) => [...prev, track]);
   }, []);
 
   const _registerEventListener = React.useCallback(
@@ -159,41 +124,6 @@ export function useWebRTC(options: TUseWebRTCOptions) {
     [_unregisterEventListener, actor.context.connection]
   );
 
-  const addOnPacketReceiveListener = React.useCallback(
-    (callback: TRealtimeConnectionPacketReceiveCallback, frequency = 1000) => {
-      const connection = actor.context.connection;
-
-      if (!connection) {
-        return {
-          error: {
-            msg: "Failed to add event listener.",
-          },
-        };
-      }
-
-      connection.addOnPacketReceiveListener(callback, frequency);
-    },
-    [actor.context.connection]
-  );
-
-  const removeOnPacketReceiveListener = React.useCallback(
-    (callback: TRealtimeConnectionPacketReceiveCallback, frequency = 1000) => {
-      const connection = actor.context.connection;
-
-      if (!connection) {
-        return {
-          error: {
-            msg: "Failed to add event listener.",
-          },
-        };
-      }
-      connection.dataChannel;
-
-      connection.removeOnPacketReceiverListener(callback, frequency);
-    },
-    [actor.context.connection]
-  );
-
   const removeAllOnPacketReceiveListeners = React.useCallback(() => {
     const connection = actor.context.connection;
 
@@ -244,7 +174,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
       listeners.forEach((listener) => removeEventListener(type, listener));
     });
     _eventListeners.current = {};
-    setRemoteStreams([]);
+    setRemoteTracks([]);
 
     /**
      * Removing all packet received event listeners.
@@ -259,7 +189,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
   }, [actor, send, removeEventListener, removeAllOnPacketReceiveListeners]);
 
   const getLocalTracks = React.useCallback(
-    (type: "audio" | "video" | "screen"): TUseWebRTCReturn<TMedia[] | null> => {
+    (type: "audio" | "video" | "screen"): TUseWebRTCReturn<Track[] | null> => {
       const connection = actor.context.connection;
 
       if (!connection) {
@@ -289,31 +219,31 @@ export function useWebRTC(options: TUseWebRTCOptions) {
     [actor]
   );
 
-  const getLocalAudioTracks = React.useCallback(() => {
+  const getLocalAudioTrack = React.useCallback(() => {
     const res = getLocalTracks("audio");
 
     if (res.data) {
-      return res.data;
+      return res.data[0];
     }
 
-    return [];
+    return null;
   }, [getLocalTracks]);
 
-  const getLocalVideoTracks = React.useCallback(() => {
+  const getLocalVideoTrack = React.useCallback(() => {
     const res = getLocalTracks("video");
 
     if (res.data) {
-      return res.data;
+      return res.data[0];
     }
 
-    return [];
+    return null;
   }, [getLocalTracks]);
 
   const getRemoteTracks = React.useCallback(
-    (type: "audio" | "video"): TUseWebRTCReturn<TMedia[] | null> => {
+    (type: "audio" | "video"): TUseWebRTCReturn<Track[] | null> => {
       try {
-        const data = remoteStreams.filter(
-          (media) => media.track.kind === type && media.stream.active === true
+        const data = remoteTracks.filter(
+          (media) => media.kind === type && media.stream.active === true
         );
 
         return {
@@ -330,27 +260,27 @@ export function useWebRTC(options: TUseWebRTCOptions) {
       }
     },
 
-    [remoteStreams]
+    [remoteTracks]
   );
 
-  const getRemoteAudioTracks = React.useCallback(() => {
+  const getRemoteAudioTrack = React.useCallback(() => {
     const res = getRemoteTracks("audio");
 
     if (res.data) {
-      return res.data;
+      return res.data[0];
     }
 
-    return [];
+    return null;
   }, [getRemoteTracks]);
 
-  const getRemoteVideoTracks = React.useCallback(() => {
+  const getRemoteVideoTrack = React.useCallback(() => {
     const res = getRemoteTracks("video");
 
     if (res.data) {
-      return res.data;
+      return res.data[0];
     }
 
-    return [];
+    return null;
   }, [getRemoteTracks]);
 
   const reset = React.useCallback((): TUseWebRTCReturn => {
@@ -378,8 +308,10 @@ export function useWebRTC(options: TUseWebRTCOptions) {
   React.useEffect(() => {
     const connection = actor.context.connection;
 
-    if (connection && connection.dataChannel && actor.value === "Connected") {
-      setDataChannel(new DataChannel(connection.dataChannel));
+    if (!connection) return;
+
+    if (connection.dataChannel && actor.value === "Connected") {
+      setDataChannel(new WebRTCDataChannel(connection.dataChannel));
     }
 
     return () => {
@@ -392,16 +324,14 @@ export function useWebRTC(options: TUseWebRTCOptions) {
     connect,
     disconnect,
     reset,
-    addEventListener,
     dataChannel,
+    addEventListener,
     removeEventListener,
-    addOnPacketReceiveListener,
-    removeOnPacketReceiveListener,
-    getLocalAudioTracks,
-    getLocalVideoTracks,
+    getLocalAudioTrack,
+    getLocalVideoTrack,
     getLocalTracks,
-    getRemoteAudioTracks,
-    getRemoteVideoTracks,
+    getRemoteAudioTrack,
+    getRemoteVideoTrack,
     getRemoteTracks,
   };
 }

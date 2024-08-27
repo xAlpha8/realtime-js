@@ -1,27 +1,28 @@
 import { useEffect, useRef } from "react";
-import { TMedia } from "../../realtime-core/shared/@types";
+import { Track } from "../../realtime-core";
 
 export type RealtimeVideoProps = {
-  tracks: TMedia[];
+  track: Track | null;
 };
 
 export function RealtimeVideo(props: RealtimeVideoProps) {
-  const { tracks } = props;
+  const { track } = props;
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  function pauseVideo() {
+    track?.pause();
+  }
+
+  function resumeVideo() {
+    track?.resume();
+  }
+
   useEffect(() => {
-    tracks.forEach((media) => {
-      if (!media) return;
-      if (
-        videoRef.current &&
-        media.track.kind === "video" &&
-        media.stream.active === true
-      ) {
-        videoRef.current.srcObject = media.stream;
-      }
-    });
-  }, [tracks]);
+    if (track && videoRef.current) {
+      videoRef.current.srcObject = track.stream;
+    }
+  }, [track]);
 
   return (
     <div className="rt-video-container">
@@ -33,6 +34,8 @@ export function RealtimeVideo(props: RealtimeVideoProps) {
           playsInline={true}
         ></video>
       </div>
+      <button onClick={resumeVideo}>Play Video</button>
+      <button onClick={pauseVideo}>Pause Video</button>
     </div>
   );
 }

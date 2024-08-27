@@ -18,29 +18,16 @@ export function RealtimeApp(props: TRealtimeAppProps) {
   const {
     connectionStatus,
     connect,
-    addOnPacketReceiveListener,
     disconnect,
-    getRemoteAudioTracks,
-    getRemoteVideoTracks,
+    getRemoteAudioTrack,
+    getRemoteVideoTrack,
+    getLocalVideoTrack,
     dataChannel,
   } = useWebRTC({ config });
 
   React.useEffect(() => {
     switch (connectionStatus) {
       case "SetupCompleted":
-        addOnPacketReceiveListener((event) => {
-          if (event.kind !== "audio") {
-            // Only logging if we have timestamp for audio.
-            return;
-          }
-
-          console.log("Previous", event.prevSource?.timestamp);
-          console.log("Current", event.source.timestamp);
-          console.log(
-            "Diff",
-            event.source.timestamp - (event.prevSource?.timestamp || 0)
-          );
-        });
         connect();
         break;
       case "Disconnected":
@@ -51,13 +38,7 @@ export function RealtimeApp(props: TRealtimeAppProps) {
     if (connectionStatus === "Failed") {
       console.log("Something went wrong, please try again");
     }
-  }, [
-    connectionStatus,
-    connect,
-    onDisconnect,
-    addOnPacketReceiveListener,
-    config,
-  ]);
+  }, [connectionStatus, connect, onDisconnect, config]);
 
   function handleDisconnect() {
     if (connectionStatus === "Connected") {
@@ -73,10 +54,11 @@ export function RealtimeApp(props: TRealtimeAppProps) {
         Connection Status: {connectionStatus}
         <button onClick={handleDisconnect}>Disconnect</button>
       </div>
-      <RealtimeVideo tracks={getRemoteVideoTracks()} />
+      <RealtimeVideo track={getRemoteVideoTrack()} />
+      <RealtimeVideo track={getLocalVideoTrack()} />
       <div className="audio-container">
-        <RealtimeAudioVisualizer tracks={getRemoteAudioTracks()} />
-        <RealtimeAudio tracks={getRemoteAudioTracks()} />
+        <RealtimeAudio track={getRemoteAudioTrack()} />
+        <RealtimeAudioVisualizer track={getRemoteAudioTrack()} />
       </div>
       {dataChannel && <RealtimeChat dataChannel={dataChannel} />}
     </div>
