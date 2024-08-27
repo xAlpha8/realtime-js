@@ -13,7 +13,8 @@
     "dev": "vite",
     "build": "tsc --p ./tsconfig-build.json && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "prePublishOnly": "npm run build",
   "peerDependencies": {
@@ -21,6 +22,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@sentry/vite-plugin": "^2.21.1",
     "@types/node": "^20.12.12",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
@@ -34,8 +36,9 @@
     "terser": "^5.31.0",
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
-    "@sentry/vite-plugin": "^2.21.1",
-    "vite-plugin-dts": "^3.9.1"
+    "vite-plugin-dts": "^3.9.1",
+    "vitest": "^2.0.5",
+    "xstate": "^5.17.4"
   },
   "dependencies": {
     "@sentry/react": "^8.17.0",
