@@ -56,7 +56,7 @@ export class RealtimeConnectionNegotiator {
       };
     }
 
-    this._logger?.info(this._logLabel, "Retrieved offer URL.");
+    this._logger?.info(this._logLabel, "Retrieved offer URL.", offerURL);
 
     response = this._modifySDPBeforeSendingOffer();
 

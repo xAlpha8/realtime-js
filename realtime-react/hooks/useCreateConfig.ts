@@ -107,7 +107,6 @@ export function useCreateConfig(): TUseCreateConfigReturn {
       videoCodec,
       videoConstraints,
       videoTransform,
-      // addTransceivers,
     });
   }, [
     functionURL,
@@ -123,7 +122,6 @@ export function useCreateConfig(): TUseCreateConfigReturn {
     videoCodec,
     videoConstraints,
     videoTransform,
-    // addTransceivers,
   ]);
 
   return {

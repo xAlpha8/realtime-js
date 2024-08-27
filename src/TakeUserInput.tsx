@@ -42,15 +42,9 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   }
 
   React.useEffect(() => {
-    // Chatbot
     setFunctionURL(
       "https://infra.getadapt.ai/run/68deae870da28f99a8562dcb962b9383"
     );
-
-    // Cooking assistant
-    // setFunctionURL(
-    //   "https://infra.getadapt.ai/run/e4b93d828a74cd8e3065584dfd0d8d40"
-    // );
 
     setLogger(ConsoleLogger.getLogger());
   }, [setFunctionURL, setLogger]);
