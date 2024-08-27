@@ -1,42 +1,114 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.user-input-page {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.form {
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 16px 32px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.stack {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
 }
 
-.card {
-  padding: 2em;
+
+h4 {
+  margin: 0;
+  margin-bottom: 4px;
 }
 
-.read-the-docs {
-  color: #888;
+
+input, select {
+  margin-bottom: 4px;
+  background: transparent;
+  border-radius: 4px;
+  padding: 12px 16px;
+  border: 1px solid #333
+}
+
+input:hover, select:hover {
+  background: #333
+}
+
+
+input:focus, select:focus {
+  outline: 2px solid #555;
+}
+
+button {
+  margin-top: 12px;
+}
+
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+}
+
+.rt-audio-visualizer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.rt-audio-visualizer canvas {
+ height: 120px;
+ width: 100%; 
+}
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+.rt-video-container {
+  flex: 1;
+  padding: 8px;
+  display: flex;
+  overflow: hidden;
+}
+
+.rt-video-wrapper {
+  flex: 1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rt-video {
+  object-fit: contain;
+  object-position: center;
+  height: 100%;
+  width: 100%;
+}
+
+.rt-chat-container {
+  position: fixed;
+  top: 100px;
+  left: 20px;
+  width: 200px;
+  max-height: 500px;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.rt-chat-message {
+  padding: 2px 0;
 }

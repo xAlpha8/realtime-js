@@ -77,7 +77,9 @@ export class RealtimeConnection {
   constructor(config: TRealtimeConfig) {
     this._config = config;
     this._logger = this._config.logger;
-    this.peerConnection = new RTCPeerConnection(this._config.rtcConfig);
+    this.peerConnection = new RTCPeerConnection({
+      sdpSemantics: "unified-plan",
+    });
     this.mediaManager = new RealtimeConnectionMediaManager(
       this.peerConnection,
       this._config
