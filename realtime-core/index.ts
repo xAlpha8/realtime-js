@@ -5,4 +5,6 @@ export * from "./constants";
 export * from "./create-config";
 export * from "./machine";
 export * from "./utils";
+export * from "./DataChannel";
 export * from "./shared/@types";
+export * from "./shared/Track";

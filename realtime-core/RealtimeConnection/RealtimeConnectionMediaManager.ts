@@ -1,10 +1,11 @@
 import {
   TLogger,
-  TMedia,
   TRealtimeConfig,
   TResponse,
   TTransceiver,
 } from "../shared/@types";
+
+import { Track, ETrackOrigin, ETrackKind } from "../shared/Track";
 
 /**
  * This class manages local and remote media streams, including audio, video
@@ -43,7 +44,7 @@ export class RealtimeConnectionMediaManager {
   private readonly _logLabel = "RealtimeConnectionMediaManager";
 
   // To store all the local streams.
-  localStreams: Record<"audio" | "video" | "screen", TMedia[]>;
+  localStreams: Record<ETrackKind | "screen", Track[]>;
 
   constructor(peerConnection: RTCPeerConnection, config: TRealtimeConfig) {
     this._peerConnection = peerConnection;
@@ -155,10 +156,12 @@ export class RealtimeConnectionMediaManager {
         const stream = new MediaStream([track]);
         this._peerConnection.addTrack(track, stream);
 
+        const _trackInstance = new Track(track, ETrackOrigin.Local);
+
         if (track.kind === "audio") {
-          this.localStreams.audio.push({ track, stream });
+          this.localStreams.audio.push(_trackInstance);
         } else if (track.kind === "video") {
-          this.localStreams.video.push({ track, stream });
+          this.localStreams.video.push(_trackInstance);
         }
       } catch (error) {
         this._logger?.error(this._logLabel, error);
@@ -213,7 +216,7 @@ export class RealtimeConnectionMediaManager {
       const stream = await navigator.mediaDevices.getDisplayMedia(config);
       stream.getTracks().forEach((track) => {
         this._peerConnection.addTrack(track, stream);
-        this.localStreams.screen.push({ track, stream });
+        this.localStreams.screen.push(new Track(track, ETrackOrigin.Local));
       });
 
       return {
