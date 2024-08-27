@@ -1,3 +1,15 @@
+export enum ETrackKind {
+  Audio = "audio",
+  Video = "video",
+  Unknown = "unknown",
+}
+
+export enum ETrackOrigin {
+  Remote = "remote",
+  Local = "local",
+  Unknown = "unknown",
+}
+
 /**
  * Class representing a media track.
  */
@@ -13,26 +25,35 @@ export class Track {
   stream: MediaStream;
 
   /**
-   * Origin of the track (remote or local).
+   * Origin of the track.
    */
-  origin: "remote" | "local";
+  origin: ETrackOrigin;
 
   /**
    * Track kind
    */
-  kind: "audio" | "video";
+  kind: ETrackKind;
 
   /**
    * The underlying MediaStreamTrack object.
    */
   track: MediaStreamTrack;
 
-  constructor(track: MediaStreamTrack, origin: "remote" | "local") {
+  constructor(track: MediaStreamTrack, origin: ETrackOrigin) {
     this.id = track.id;
     this.stream = new MediaStream([track]);
     this.origin = origin;
-    this.kind = track.kind as "audio" | "video";
     this.track = track;
+    switch (track.kind) {
+      case "audio":
+        this.kind = ETrackKind.Audio;
+        break;
+      case "video":
+        this.kind = ETrackKind.Video;
+        break;
+      default:
+        this.kind = ETrackKind.Unknown;
+    }
   }
 
   /**

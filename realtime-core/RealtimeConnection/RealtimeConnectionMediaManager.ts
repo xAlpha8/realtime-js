@@ -5,7 +5,7 @@ import {
   TTransceiver,
 } from "../shared/@types";
 
-import { Track } from "../shared/Track";
+import { Track, ETrackOrigin } from "../shared/Track";
 
 /**
  * This class manages local and remote media streams, including audio, video
@@ -156,7 +156,7 @@ export class RealtimeConnectionMediaManager {
         const stream = new MediaStream([track]);
         this._peerConnection.addTrack(track, stream);
 
-        const _trackInstance = new Track(track, "local");
+        const _trackInstance = new Track(track, ETrackOrigin.Local);
 
         if (track.kind === "audio") {
           this.localStreams.audio.push(_trackInstance);
@@ -216,7 +216,7 @@ export class RealtimeConnectionMediaManager {
       const stream = await navigator.mediaDevices.getDisplayMedia(config);
       stream.getTracks().forEach((track) => {
         this._peerConnection.addTrack(track, stream);
-        this.localStreams.screen.push(new Track(track, "local"));
+        this.localStreams.screen.push(new Track(track, ETrackOrigin.Local));
       });
 
       return {

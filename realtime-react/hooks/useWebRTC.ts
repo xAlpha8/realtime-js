@@ -8,6 +8,7 @@ import {
   TRealtimeConfig,
   Track,
   WebRTCDataChannel,
+  ETrackOrigin,
 } from "../../realtime-core";
 
 export type TUseWebRTCReturn<T = unknown> = {
@@ -41,7 +42,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
       return;
     }
 
-    const track = new Track(event.track, "remote");
+    const track = new Track(event.track, ETrackOrigin.Remote);
     setRemoteTracks((prev) => [...prev, track]);
   }, []);
 
