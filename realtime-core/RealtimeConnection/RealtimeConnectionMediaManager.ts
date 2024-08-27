@@ -5,7 +5,7 @@ import {
   TTransceiver,
 } from "../shared/@types";
 
-import { Track, ETrackOrigin } from "../shared/Track";
+import { Track, ETrackOrigin, ETrackKind } from "../shared/Track";
 
 /**
  * This class manages local and remote media streams, including audio, video
@@ -44,7 +44,7 @@ export class RealtimeConnectionMediaManager {
   private readonly _logLabel = "RealtimeConnectionMediaManager";
 
   // To store all the local streams.
-  localStreams: Record<"audio" | "video" | "screen", Track[]>;
+  localStreams: Record<ETrackKind | "screen", Track[]>;
 
   constructor(peerConnection: RTCPeerConnection, config: TRealtimeConfig) {
     this._peerConnection = peerConnection;

@@ -1,13 +1,11 @@
 export enum ETrackKind {
   Audio = "audio",
   Video = "video",
-  Unknown = "unknown",
 }
 
 export enum ETrackOrigin {
   Remote = "remote",
   Local = "local",
-  Unknown = "unknown",
 }
 
 /**
@@ -52,7 +50,7 @@ export class Track {
         this.kind = ETrackKind.Video;
         break;
       default:
-        this.kind = ETrackKind.Unknown;
+        throw new Error("Unknown track kind");
     }
   }
 

@@ -9,6 +9,7 @@ import {
   Track,
   WebRTCDataChannel,
   ETrackOrigin,
+  ETrackKind,
 } from "../../realtime-core";
 
 export type TUseWebRTCReturn<T = unknown> = {
@@ -190,7 +191,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
   }, [actor, send, removeEventListener, removeAllOnPacketReceiveListeners]);
 
   const getLocalTracks = React.useCallback(
-    (type: "audio" | "video" | "screen"): TUseWebRTCReturn<Track[] | null> => {
+    (type: ETrackKind | "screen"): TUseWebRTCReturn<Track[] | null> => {
       const connection = actor.context.connection;
 
       if (!connection) {
@@ -221,7 +222,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
   );
 
   const getLocalAudioTrack = React.useCallback(() => {
-    const res = getLocalTracks("audio");
+    const res = getLocalTracks(ETrackKind.Audio);
 
     if (res.data) {
       return res.data[0];
@@ -231,7 +232,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
   }, [getLocalTracks]);
 
   const getLocalVideoTrack = React.useCallback(() => {
-    const res = getLocalTracks("video");
+    const res = getLocalTracks(ETrackKind.Video);
 
     if (res.data) {
       return res.data[0];
@@ -241,7 +242,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
   }, [getLocalTracks]);
 
   const getRemoteTracks = React.useCallback(
-    (type: "audio" | "video"): TUseWebRTCReturn<Track[] | null> => {
+    (type: ETrackKind): TUseWebRTCReturn<Track[] | null> => {
       try {
         const data = remoteTracks.filter(
           (media) => media.kind === type && media.stream.active === true
@@ -265,7 +266,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
   );
 
   const getRemoteAudioTrack = React.useCallback(() => {
-    const res = getRemoteTracks("audio");
+    const res = getRemoteTracks(ETrackKind.Audio);
 
     if (res.data) {
       return res.data[0];
@@ -275,7 +276,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
   }, [getRemoteTracks]);
 
   const getRemoteVideoTrack = React.useCallback(() => {
-    const res = getRemoteTracks("video");
+    const res = getRemoteTracks(ETrackKind.Video);
 
     if (res.data) {
       return res.data[0];
