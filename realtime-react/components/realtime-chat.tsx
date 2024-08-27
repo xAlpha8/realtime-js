@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+
+import { isMessageEvent } from "../../realtime-core/utils";
 import { DataChannel } from "../hooks";
 
 export type RealtimeChatProps = {
@@ -14,14 +16,27 @@ export function RealtimeChat(props: RealtimeChatProps) {
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    dataChannel.on_recv((evt) => {
+    const onMessage = (evt: unknown) => {
+      if (!isMessageEvent(evt)) {
+        return;
+      }
+
+      if (typeof evt.data !== "string") {
+        return;
+      }
+
       try {
         const message = JSON.parse(evt.data);
         setMessages((currentMessages) => [...currentMessages, message]);
       } catch (error) {
         console.error(error);
       }
-    });
+    };
+
+    dataChannel.addEventListener("message", onMessage);
+    return () => {
+      dataChannel.removeEventListener("message", onMessage);
+    };
   }, [dataChannel]);
 
   return (

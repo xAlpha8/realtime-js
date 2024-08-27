@@ -29,8 +29,18 @@ export class DataChannel {
     this._rtcDataChannel = rtcDataChannel;
   }
 
-  on_recv(callback: (ev: MessageEvent) => void) {
-    this._rtcDataChannel.onmessage = callback;
+  addEventListener(
+    type: "message" | "close" | "open",
+    listener: (this: RTCDataChannel, ev: MessageEvent | Event) => void
+  ) {
+    this._rtcDataChannel.addEventListener(type, listener);
+  }
+
+  removeEventListener(
+    type: "message" | "close" | "open",
+    listener: (this: RTCDataChannel, ev: MessageEvent | Event) => void
+  ) {
+    this._rtcDataChannel.addEventListener(type, listener);
   }
 
   send(obj: object) {
@@ -41,6 +51,8 @@ export class DataChannel {
     }
   }
 }
+
+export class Track {}
 
 export function useWebRTC(options: TUseWebRTCOptions) {
   const [actor, send] = useActor(realtimeConnectionMachine);
@@ -377,11 +389,11 @@ export function useWebRTC(options: TUseWebRTCOptions) {
 
   return {
     connectionStatus: actor.value,
-    dataChannel,
     connect,
     disconnect,
     reset,
     addEventListener,
+    dataChannel,
     removeEventListener,
     addOnPacketReceiveListener,
     removeOnPacketReceiveListener,
