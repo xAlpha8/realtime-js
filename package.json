@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@sentry/react": "^8.17.0",
+    "@xstate/react": "^4.1.1",
     "audiomotion-analyzer": "^4.5.0",
     "change-case": "^5.4.4",
     "extendable-media-recorder": "^9.2.10",
