@@ -13,7 +13,8 @@ export default defineConfig({
     obfuscator(),
     sentryVitePlugin({
       org: "adapt-ai",
-      project: "javascript-react"
+      project: "javascript-react",
+      telemetry: false
     })
   ],
   build: {

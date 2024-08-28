@@ -1,7 +1,7 @@
 {
   "name": "@adaptai/realtime-react",
   "private": false,
-  "version": "0.0.611",
+  "version": "0.0.621",
   "type": "module",
   "main": "dist/realtime-react.js",
   "types": "dist/index.d.ts",
@@ -34,7 +34,7 @@
     "eslint-plugin-react-refresh": "^0.4.6",
     "rollup-obfuscator": "^4.1.1",
     "terser": "^5.31.0",
-    "typescript": "^5.2.2",
+    "typescript": "^5.4.2",
     "vite": "^5.2.0",
     "vite-plugin-dts": "^3.9.1",
     "vitest": "^2.0.5",
@@ -43,6 +43,9 @@
   "dependencies": {
     "@sentry/react": "^8.17.0",
     "audiomotion-analyzer": "^4.5.0",
+    "extendable-media-recorder": "^9.2.10",
+    "extendable-media-recorder-wav-encoder": "^7.0.114",
+    "snake-case": "^4.0.0",
     "zod": "^3.23.8"
   }
 }
