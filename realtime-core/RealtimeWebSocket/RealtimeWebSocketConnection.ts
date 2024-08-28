@@ -290,7 +290,9 @@ export class RealtimeWebSocketConnection {
 
   async disconnect(): Promise<TResponse> {
     try {
-      this.abortController?.abort();
+      this.abortController?.abort(
+        "RealtimeWebSocketConnection.disconnect() is called."
+      );
       this.media.queue = [];
       this.media.recorder?.stop();
       this.dataChannel?.send({ type: "websocket_stop" });
