@@ -70,7 +70,7 @@ export class RealtimeWebSocketConnection {
   ): Promise<TResponse<string, string>> {
     try {
       // Try to resolve the function URL.
-      await fetchWithRetry(functionURL + "/connection", undefined, 7);
+      await fetchWithRetry(functionURL + "/connections", undefined, 7);
 
       return {
         ok: true,
