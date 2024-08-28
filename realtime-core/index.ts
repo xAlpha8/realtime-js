@@ -1,5 +1,6 @@
 export * from "./Logger";
 export * from "./RealtimeConnection";
+export * from "./RealtimeWebSocket";
 export * from "./SDP";
 export * from "./constants";
 export * from "./create-config";

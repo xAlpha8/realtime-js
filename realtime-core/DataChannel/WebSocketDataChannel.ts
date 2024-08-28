@@ -1,11 +1,11 @@
 import { DataChannel } from "./DataChannel";
-import { EventEmitter } from 'events';
+import { stringify } from "../utils";
 
-export class WebSocketDataChannel implements DataChannel<WebSocketDataChannel> {
-  dataChannel: WebSocketDataChannel;
+export class WebSocketDataChannel implements DataChannel<WebSocket> {
+  dataChannel: WebSocket;
 
-  constructor(dataChannel: WebSocketDataChannel) {
-    this.dataChannel = dataChannel;
+  constructor(socket: WebSocket) {
+    this.dataChannel = socket;
   }
 
   addEventListener(
@@ -22,31 +22,11 @@ export class WebSocketDataChannel implements DataChannel<WebSocketDataChannel> {
     this.dataChannel.removeEventListener(type, listener);
   }
 
-  send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void {
-    this.dataChannel.send(data);
-  }
-}
-
-class RtDataChannel extends EventEmitter {
-  private socket: WebSocket | null;
-
-  constructor(socket: WebSocket | null = null) {
-    super();
-    this.socket = socket;
-  }
-
-  setSocket(socket: WebSocket | null): void {
-    this.socket = socket;
-  }
-
-  send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(data);
-    } else {
-      console.error('WebSocket is not open. Cannot send data.');
+  send(payload: { type: string } & { [k in string]: unknown }): void {
+    if (this.dataChannel.readyState !== WebSocket.OPEN) {
+      throw new Error("WebSocket is not open");
     }
+
+    this.dataChannel.send(stringify(payload));
   }
 }
-
-export { RtDataChannel };
-
