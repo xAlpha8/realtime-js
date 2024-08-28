@@ -2,6 +2,7 @@ import {
   IMediaRecorder,
   MediaRecorder,
   register,
+  deregister,
 } from "extendable-media-recorder";
 import { connect as wavEncodedConnect } from "extendable-media-recorder-wav-encoder";
 
@@ -24,6 +25,7 @@ export class RealtimeWebSocketConnection {
     queue: Buffer[];
     isPlaying: boolean;
     source?: AudioBufferSourceNode | null;
+    wavEncoderPort?: MessagePort | null;
   } = {
     stream: null,
     recorder: null,
@@ -31,7 +33,10 @@ export class RealtimeWebSocketConnection {
     queue: [],
     isPlaying: false,
     source: null,
+    wavEncoderPort: null,
   };
+
+  abortController: null | AbortController = null;
 
   constructor(config: TRealtimeWebSocketConfig) {
     this._config = config;
@@ -41,17 +46,21 @@ export class RealtimeWebSocketConnection {
   }
   private async _setupAudio() {
     try {
+      if (!this.media.wavEncoderPort) {
+        this.media.wavEncoderPort = await wavEncodedConnect();
+        await register(this.media.wavEncoderPort);
+      }
+
       const audioContext = new AudioContext();
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: this._config.audio || true,
       });
       this.media.stream = stream;
+
       this.media.recorder = new MediaRecorder(this.media.stream, {
         mimeType: "audio/wav",
       });
       this.media.audioContext = audioContext;
-
-      await register(await wavEncodedConnect());
 
       this._logger?.info(this._logLabel, "Audio setup complete");
       return {
@@ -70,7 +79,11 @@ export class RealtimeWebSocketConnection {
   ): Promise<TResponse<string, string>> {
     try {
       // Try to resolve the function URL.
-      await fetchWithRetry(functionURL + "/connections", undefined, 7);
+      await fetchWithRetry(
+        functionURL + "/connections",
+        { signal: this.abortController?.signal },
+        7
+      );
 
       return {
         ok: true,
@@ -114,6 +127,7 @@ export class RealtimeWebSocketConnection {
       return setupAudioResponse;
     }
 
+    this.abortController = new AbortController();
     const response = await this._getOfferURL(config.functionURL);
 
     if (!response.ok || !response.data) {
@@ -183,6 +197,11 @@ export class RealtimeWebSocketConnection {
         error,
       };
     }
+
+    this._logger?.info(
+      this._logLabel,
+      "Connected to socket and started recording"
+    );
 
     return {
       ok: true,
@@ -269,12 +288,21 @@ export class RealtimeWebSocketConnection {
     });
   }
 
-  disconnect(): TResponse {
+  async disconnect(): Promise<TResponse> {
     try {
+      this.abortController?.abort();
       this.media.queue = [];
       this.media.recorder?.stop();
       this.dataChannel?.send({ type: "websocket_stop" });
       this.socket?.close();
+
+      if (this.media.wavEncoderPort) {
+        await deregister(this.media.wavEncoderPort);
+        this.media.wavEncoderPort = null;
+      }
+
+      this._isConnecting = false;
+      this._logger?.info(this._logLabel, "Disconnected");
 
       return {
         ok: true,
