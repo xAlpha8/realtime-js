@@ -1,3 +1,4 @@
+import { snakeCase } from "change-case";
 import { TRealtimeConfig } from "./shared/@types";
 
 // Returns a list of all available audio devices.
@@ -208,3 +209,14 @@ export function isValidConfig(obj: unknown): obj is TRealtimeConfig {
 
   return false;
 }
+
+export const stringify = (obj: object): string => {
+  return JSON.stringify(obj, (_, value) => {
+    if (value && typeof value === "object") {
+      return Object.fromEntries(
+        Object.entries(value).map(([k, v]) => [snakeCase(k), v])
+      );
+    }
+    return value;
+  });
+};
