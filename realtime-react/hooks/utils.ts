@@ -9,16 +9,12 @@ export const blobToBase64 = (blob: Blob): Promise<string | null> => {
   });
 };
 
-export const stringify = (obj: Object): string => {
-  return JSON.stringify(obj, function (key, value) {
+export const stringify = (obj: object): string => {
+  return JSON.stringify(obj, (_, value) => {
     if (value && typeof value === "object") {
-      var replacement: { [key: string]: any } = {};
-      for (var k in value) {
-        if (Object.hasOwnProperty.call(value, k)) {
-          replacement[k && snakeCase(k.toString())] = value[k];
-        }
-      }
-      return replacement;
+      return Object.fromEntries(
+        Object.entries(value).map(([k, v]) => [snakeCase(k), v])
+      );
     }
     return value;
   });
