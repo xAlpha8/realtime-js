@@ -14,7 +14,7 @@ export function AppHeader(props: TAppHeader) {
         <h3 className="font-bold">Adapt Playground</h3>
         {status === "Connecting" && (
           <div className="flex items-center ml-2 border px-2 rounded-[4px] overflow-hidden text-yellow-900">
-            <div className="h-2 w-2 rounded-full bg-yellow-300 mr-2"></div>
+            <div className="h-2 w-2 rounded-full bg-yellow-300 mr-2 animate-ping"></div>
             <span>{status}</span>
           </div>
         )}
