@@ -27,6 +27,7 @@ export function RealtimeChat(props: RealtimeChatProps) {
 
       try {
         const message = JSON.parse(evt.data);
+        console.log(evt.data)
         setMessages((currentMessages) => [...currentMessages, message]);
       } catch (error) {
         console.error(error);
