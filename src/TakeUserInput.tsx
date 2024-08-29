@@ -37,7 +37,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
     <div className="container">
       <AppHeader status="Disconnected" />
       <div className="user-input-page">
-        <form className="form space-y-4">
+        <form className="form space-y-4 w-full max-w-lg">
           <h2>Playground</h2>
           <div className="flex flex-col space-y-2">
             <h4>Function URL</h4>
@@ -61,11 +61,12 @@ export function TakeUserInput(props: TTakeUserInputProps) {
               </option>
               {availableAudioDevices.map((option, index) => (
                 <option
-                  className="p-1 bg-[#333]"
+                  className="p-1 bg-[#333] text-wrap"
                   key={index}
                   value={option.deviceId}
                 >
-                  {option.label}
+                  {option.label.substring(0, 40)}
+                  {option.label.length > 40 && "..."}
                 </option>
               ))}
             </select>
@@ -90,7 +91,8 @@ export function TakeUserInput(props: TTakeUserInputProps) {
                   key={index}
                   value={option.deviceId}
                 >
-                  {option.label}
+                  {option.label.substring(0, 40)}{" "}
+                  {option.label.length > 40 && "..."}
                 </option>
               ))}
             </select>
