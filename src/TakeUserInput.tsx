@@ -14,7 +14,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
   const [videoDeviceId, setVideoDeviceId] = React.useState("");
   const [functionURL, setFunctionURL] = React.useState(
-    "https://us0-dev.getadapt.ai/run/3e75182729bb655682854a6e6971238b"
+    "https://us0-dev.getadapt.ai/run/701b7ffa17081b63ef79088cb5e4c0a8"
   );
 
   function handleFormSubmit() {
@@ -35,7 +35,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   return (
     <div className="user-input-page">
       <form className="form">
-        <h2>Realtime App</h2>
+        <h2>Playground</h2>
         <div className="stack">
           <h4>Function URL</h4>
           <input
@@ -60,7 +60,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
               </option>
             ))}
           </select>
-          <small>
+          <small style={{ color: '#888' }}>
             If you don't want to use any audio device then leave this empty.
           </small>
         </div>
@@ -80,7 +80,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
               </option>
             ))}
           </select>
-          <small>
+          <small style={{ color: '#888' }}>
             If you don't want to use any video device then leave this empty.
           </small>
         </div>
