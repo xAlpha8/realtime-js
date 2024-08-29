@@ -12,7 +12,7 @@ export default function App() {
   function onSubmit() {
     setConfig({
       functionURL:
-        "https://us0-dev.getadapt.ai/run/3e75182729bb655682854a6e6971238b",
+        "https://us0-dev.getadapt.ai/run/691ebe09a99b4823b29e37bce47dd7ae",
       audio: true,
       video: true,
       dataChannelOptions: {
