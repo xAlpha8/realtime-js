@@ -6,6 +6,9 @@ import React from "react";
 
 export default function App() {
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
+  const [functionURL, setFunctionURL] = React.useState(
+    "https://infra.getadapt.ai/run/68deae870da28f99a8562dcb962b9383"
+  );
   const { availableAudioDevices } = useAvailableMediaDevices();
 
   const { connect, disconnect } = useWebSocket({
@@ -14,14 +17,17 @@ export default function App() {
         deviceId: audioDeviceId,
         echoCancellation: true,
       },
-      functionURL:
-        "https://us0-dev.getadapt.ai/run/eb7bf856460c223978795a96d2cd2073",
+      functionURL,
       logger: ConsoleLogger.getLogger(),
     },
   });
 
   return (
     <div>
+      <input
+        value={functionURL}
+        onChange={(e) => setFunctionURL(e.currentTarget.value)}
+      />
       <select
         value={audioDeviceId}
         onChange={(e) => setAudioDeviceId(e.target.value)}
