@@ -1,17 +1,29 @@
-import { useAvailableMediaDevices, useWebSocket } from "../realtime-react";
+import {
+  RealtimeAudio,
+  useAvailableMediaDevices,
+  useWebSocket,
+} from "../realtime-react";
 
 import "./App.css";
-import { ConsoleLogger } from "../realtime-core";
+import { ConsoleLogger, isMessageEvent } from "../realtime-core";
 import React from "react";
 
 export default function App() {
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
   const [functionURL, setFunctionURL] = React.useState(
-    "https://infra.getadapt.ai/run/68deae870da28f99a8562dcb962b9383"
+    "http://localhost:8080/"
   );
   const { availableAudioDevices } = useAvailableMediaDevices();
+  const [localAudioVolume, setLocalAudioVolume] = React.useState(0);
 
-  const { connect, disconnect } = useWebSocket({
+  const {
+    connect,
+    disconnect,
+    getRemoteAudioTrack,
+    getLocalAudioTrack,
+    connection,
+    connectionStatus,
+  } = useWebSocket({
     config: {
       audio: {
         deviceId: audioDeviceId,
@@ -22,8 +34,34 @@ export default function App() {
     },
   });
 
+  const onMessage = React.useCallback(
+    (event: unknown) => {
+      if (!isMessageEvent(event)) return;
+      ConsoleLogger.getLogger().info("Messages", "Received Message.");
+
+      const msg = JSON.parse(event.data);
+      if (msg.type === "audio") {
+        connection?.mediaManager.playAudio(msg.data);
+      }
+    },
+    [connection]
+  );
+
+  React.useEffect(() => {
+    if (connection && connectionStatus === "connected") {
+      connection.dataChannel?.addEventListener("message", onMessage);
+    }
+
+    return () => {
+      if (connection) {
+        connection.dataChannel?.removeEventListener("message", onMessage);
+      }
+    };
+  }, [connection, onMessage, connectionStatus]);
+
   return (
     <div>
+      <div>Connection Status: {connectionStatus}</div>
       <input
         value={functionURL}
         onChange={(e) => setFunctionURL(e.currentTarget.value)}
@@ -38,8 +76,40 @@ export default function App() {
           </option>
         ))}
       </select>
-      <button onClick={connect}>Connect</button>
-      <button onClick={disconnect}>Disconnect</button>
+
+      <button
+        onClick={connect}
+        disabled={
+          connectionStatus === "connected" || connectionStatus === "connecting"
+        }
+      >
+        Connect
+      </button>
+      <button
+        onClick={disconnect}
+        disabled={
+          connectionStatus === "disconnected" ||
+          connectionStatus === "failed" ||
+          connectionStatus === "new"
+        }
+      >
+        Disconnect
+      </button>
+
+      <div>
+        <span>Remote Audio controller</span>
+        <RealtimeAudio track={getRemoteAudioTrack()} />
+      </div>
+
+      <div>
+        <span>Local audio controller</span>
+        <input
+          placeholder="Local audio volume"
+          value={localAudioVolume}
+          onChange={(e) => setLocalAudioVolume(+e.target.value)}
+        />
+        <RealtimeAudio track={getLocalAudioTrack()} volume={localAudioVolume} />
+      </div>
     </div>
   );
 }
