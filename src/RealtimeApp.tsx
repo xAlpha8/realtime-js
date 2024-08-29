@@ -9,7 +9,6 @@ import {
 import { TRealtimeConfig } from "../realtime-core";
 import { AppHeader } from "./Header";
 import { Chat } from "./Chat";
-import { devVideo } from "lib";
 
 export type TRealtimeAppProps = {
   onDisconnect: () => void;
@@ -214,7 +213,7 @@ export function RealtimeApp(props: TRealtimeAppProps) {
           </div>
 
           <div className="max-w-[300px] flex-1 pb-20 overflow-auto">
-            {!dataChannel && connectionStatus !== "Failed" && (
+            {!dataChannel && (
               <div className="bg-gray-600 h-full w-full rounded-[8px] flex justify-center items-center animate-pulse">
                 Loading...
               </div>
