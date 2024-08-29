@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import dts from "vite-plugin-dts";
-import { obfuscator } from 'rollup-obfuscator';
+import { obfuscator } from "rollup-obfuscator";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,11 +13,16 @@ export default defineConfig({
     obfuscator(),
     sentryVitePlugin({
       org: "adapt-ai",
-      project: "javascript-react"
-    })
+      project: "javascript-react",
+    }),
   ],
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "./src"),
+    },
+  },
   build: {
-    minify: 'terser',
+    minify: "terser",
     copyPublicDir: false,
 
     rollupOptions: {
@@ -29,6 +34,6 @@ export default defineConfig({
       formats: ["es"],
     },
 
-    sourcemap: true
+    sourcemap: true,
   },
 });

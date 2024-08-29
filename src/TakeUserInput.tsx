@@ -1,6 +1,7 @@
 import { useAvailableMediaDevices } from "../realtime-react/hooks/useAvailableMediaDevices";
 import React from "react";
 import { ConsoleLogger, createConfig, TRealtimeConfig } from "../realtime-core";
+import { AppHeader } from "./Header";
 
 export type TTakeUserInputProps = {
   onSubmit: (config: TRealtimeConfig) => void;
@@ -14,7 +15,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
   const [videoDeviceId, setVideoDeviceId] = React.useState("");
   const [functionURL, setFunctionURL] = React.useState(
-    "https://us0-dev.getadapt.ai/run/701b7ffa17081b63ef79088cb5e4c0a8"
+    "https://us0-dev.getadapt.ai/run/691ebe09a99b4823b29e37bce47dd7ae"
   );
 
   function handleFormSubmit() {
@@ -33,78 +34,92 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   }
 
   return (
-    <div className="user-input-page">
-      <form className="form">
-        <h2>Playground</h2>
-        <div className="stack">
-          <h4>Function URL</h4>
-          <input
-            value={functionURL}
-            onChange={(e) => setFunctionURL(e.target.value)}
-            required
-          />
-          <small>Required</small>
-        </div>
-        <div className="stack">
-          <h4>Audio Options:</h4>
-          <select
-            value={audioDeviceId}
-            onChange={(e) => setAudioDeviceId(e.target.value)}
-          >
-            <option value="" disabled>
-              Select audio device
-            </option>
-            {availableAudioDevices.map((option, index) => (
-              <option key={index} value={option.deviceId}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <small style={{ color: '#888' }}>
-            If you don't want to use any audio device then leave this empty.
-          </small>
-        </div>
-
-        <div className="stack">
-          <h4>Video Options:</h4>
-          <select
-            value={videoDeviceId}
-            onChange={(e) => setVideoDeviceId(e.target.value)}
-          >
-            <option value="" disabled>
-              Select video device
-            </option>
-            {availableVideoDevices.map((option, index) => (
-              <option key={index} value={option.deviceId}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <small style={{ color: '#888' }}>
-            If you don't want to use any video device then leave this empty.
-          </small>
-        </div>
-
-        <div className="stack">
-          <div style={{ marginBottom: "4px" }}>
-            <label>
-              Screen Share&nbsp;
-              <input
-                type="checkbox"
-                checked={canShareScreen}
-                onChange={() => setCanShareScreen(!canShareScreen)}
-              />
-            </label>
+    <div className="container">
+      <AppHeader status="Disconnected" />
+      <div className="user-input-page">
+        <form className="form space-y-4">
+          <h2>Playground</h2>
+          <div className="flex flex-col space-y-2">
+            <h4>Function URL</h4>
+            <input
+              className="p-2"
+              value={functionURL}
+              onChange={(e) => setFunctionURL(e.target.value)}
+              required
+            />
+            <small>Required</small>
           </div>
-          <small>If you want to share your screen.</small>
-        </div>
+          <div className="flex flex-col space-y-2">
+            <h4>Audio Options:</h4>
+            <select
+              className="p-2"
+              value={audioDeviceId}
+              onChange={(e) => setAudioDeviceId(e.target.value)}
+            >
+              <option className="p-1 bg-[#333]" value="" disabled>
+                Select audio device
+              </option>
+              {availableAudioDevices.map((option, index) => (
+                <option
+                  className="p-1 bg-[#333]"
+                  key={index}
+                  value={option.deviceId}
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <small style={{ color: "#888" }}>
+              If you don't want to use any audio device then leave this empty.
+            </small>
+          </div>
 
-        <div className="stack">
-          <button type="button" onClick={handleFormSubmit}>
-            Run
-          </button>
-        </div>
-      </form>
+          <div className="flex flex-col space-y-2">
+            <h4>Video Options:</h4>
+            <select
+              className="p-2"
+              value={videoDeviceId}
+              onChange={(e) => setVideoDeviceId(e.target.value)}
+            >
+              <option value="" disabled className="p-1 bg-[#333]">
+                Select video device
+              </option>
+              {availableVideoDevices.map((option, index) => (
+                <option
+                  className="p-1 bg-[#333]"
+                  key={index}
+                  value={option.deviceId}
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <small style={{ color: "#888" }}>
+              If you don't want to use any video device then leave this empty.
+            </small>
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <div style={{ marginBottom: "4px" }}>
+              <label>
+                Screen Share&nbsp;
+                <input
+                  type="checkbox"
+                  checked={canShareScreen}
+                  onChange={() => setCanShareScreen(!canShareScreen)}
+                />
+              </label>
+            </div>
+            <small>If you want to share your screen.</small>
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <button type="button" className="button" onClick={handleFormSubmit}>
+              Run
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

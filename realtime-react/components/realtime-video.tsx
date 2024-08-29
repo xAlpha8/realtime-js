@@ -10,14 +10,6 @@ export function RealtimeVideo(props: RealtimeVideoProps) {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  function pauseVideo() {
-    track?.pause();
-  }
-
-  function resumeVideo() {
-    track?.resume();
-  }
-
   useEffect(() => {
     if (track && videoRef.current) {
       videoRef.current.srcObject = track.stream;
@@ -25,7 +17,7 @@ export function RealtimeVideo(props: RealtimeVideoProps) {
   }, [track]);
 
   return (
-    <div className="rt-video-container">
+    <div className="rt-video-container bg-red-500">
       <div className="rt-video-wrapper">
         <video
           className="rt-video"
@@ -34,8 +26,6 @@ export function RealtimeVideo(props: RealtimeVideoProps) {
           playsInline={true}
         ></video>
       </div>
-      <button onClick={resumeVideo}>Play Video</button>
-      <button onClick={pauseVideo}>Pause Video</button>
     </div>
   );
 }
