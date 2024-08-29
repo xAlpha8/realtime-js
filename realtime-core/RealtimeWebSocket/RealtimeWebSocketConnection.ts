@@ -1,14 +1,7 @@
-import {
-  IMediaRecorder,
-  MediaRecorder,
-  register,
-  deregister,
-} from "extendable-media-recorder";
-import { connect as wavEncodedConnect } from "extendable-media-recorder-wav-encoder";
-
 import { WebSocketDataChannel } from "../DataChannel";
 import { TLogger, TRealtimeWebSocketConfig, TResponse } from "../shared/@types";
 import { fetchWithRetry } from "../utils";
+import { RealtimeWebSocketMediaManager } from "./RealtimeWebSocketMediaManager";
 
 export class RealtimeWebSocketConnection {
   private readonly _config: TRealtimeWebSocketConfig;
@@ -18,23 +11,7 @@ export class RealtimeWebSocketConnection {
 
   socket: WebSocket | null;
   dataChannel: WebSocketDataChannel | null;
-  media: {
-    stream: MediaStream | null;
-    recorder: IMediaRecorder | null;
-    audioContext: AudioContext | null;
-    queue: Buffer[];
-    isPlaying: boolean;
-    source?: AudioBufferSourceNode | null;
-    wavEncoderPort?: MessagePort | null;
-  } = {
-    stream: null,
-    recorder: null,
-    audioContext: null,
-    queue: [],
-    isPlaying: false,
-    source: null,
-    wavEncoderPort: null,
-  };
+  mediaManager: RealtimeWebSocketMediaManager;
 
   abortController: null | AbortController = null;
 
@@ -43,51 +20,46 @@ export class RealtimeWebSocketConnection {
     this._logger = config.logger;
     this.dataChannel = null;
     this.socket = null;
-  }
-  private async _setupAudio() {
-    try {
-      if (!this.media.wavEncoderPort) {
-        this.media.wavEncoderPort = await wavEncodedConnect();
-        await register(this.media.wavEncoderPort);
-      }
-
-      const audioContext = new AudioContext();
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: this._config.audio || true,
-      });
-      this.media.stream = stream;
-
-      this.media.recorder = new MediaRecorder(this.media.stream, {
-        mimeType: "audio/wav",
-      });
-      this.media.audioContext = audioContext;
-
-      this._logger?.info(this._logLabel, "Audio setup complete");
-      return {
-        ok: true,
-      };
-    } catch (error) {
-      this._logger?.error(this._logLabel, "Error setting up audio", error);
-      return {
-        error,
-      };
-    }
+    this.mediaManager = new RealtimeWebSocketMediaManager(config);
   }
 
   private async _getOfferURL(
     functionURL: string
   ): Promise<TResponse<string, string>> {
     try {
-      // Try to resolve the function URL.
-      await fetchWithRetry(
-        functionURL + "/connections",
-        { signal: this.abortController?.signal },
-        7
-      );
+      const response = await fetchWithRetry(functionURL, undefined, 7);
+
+      const payload = (await response.json()) as unknown;
+
+      // Waiting for connection to start.
+      // Making fetch request to check whether it is started.
+      await fetchWithRetry(functionURL + "connections", undefined, 7);
+
+      if (!payload || typeof payload !== "object") {
+        throw new Error(
+          `Payload is undefined or not an object. Type: ${typeof payload}`
+        );
+      }
+
+      if (
+        !("address" in payload) ||
+        typeof payload.address !== "string" ||
+        !payload.address
+      ) {
+        throw new Error(
+          `Response doesn't contain offer url. Response: ${JSON.stringify(
+            payload
+          )}`
+        );
+      }
+
+      const offerURL = payload.address
+        .replace("http", "ws")
+        .replace("0.0.0.0", "localhost");
 
       return {
         ok: true,
-        data: functionURL.replace("https://", "wss://"),
+        data: offerURL,
       };
     } catch (error) {
       this._logger?.error(this._logLabel, error);
@@ -95,6 +67,37 @@ export class RealtimeWebSocketConnection {
       return {
         error: "Failed to resolve offer URL",
       };
+    }
+  }
+
+  private _sendAudioMetadata(): TResponse {
+    const metadataResponse = this.mediaManager.getMetadata();
+
+    if (!metadataResponse.ok || !metadataResponse.data) {
+      this._logger?.error(
+        this._logLabel,
+        metadataResponse.error || "Failed to get audio metadata"
+      );
+      return {
+        error: metadataResponse.error,
+      };
+    }
+    try {
+      this.dataChannel!.send({
+        type: "audio_metadata",
+        payload: metadataResponse.data,
+      });
+
+      return {
+        ok: true,
+      };
+    } catch (error) {
+      this._logger?.error(
+        this._logLabel,
+        "Error sending audio metadata",
+        error
+      );
+      return { error: "Error sending audio metadata" };
     }
   }
 
@@ -119,7 +122,7 @@ export class RealtimeWebSocketConnection {
 
     this._isConnecting = true;
 
-    const setupAudioResponse = await this._setupAudio();
+    const setupAudioResponse = await this.mediaManager.setup();
 
     if (!setupAudioResponse.ok) {
       this._isConnecting = false;
@@ -177,7 +180,7 @@ export class RealtimeWebSocketConnection {
       return connectionResponse;
     }
 
-    const sendMetadataResponse = this.sendAudioMetadata();
+    const sendMetadataResponse = this._sendAudioMetadata();
 
     if (!sendMetadataResponse.ok) {
       this._logger?.error(
@@ -190,7 +193,7 @@ export class RealtimeWebSocketConnection {
 
     try {
       // Starting recorder
-      this.media.recorder!.start();
+      this.mediaManager.recorder!.start(1);
     } catch (error) {
       this._logger?.error(this._logLabel, "Error starting recorder", error);
       return {
@@ -208,100 +211,16 @@ export class RealtimeWebSocketConnection {
     };
   }
 
-  sendAudioMetadata(): TResponse {
-    if (!this.media.stream) {
-      this._logger?.warn(this._logLabel, "No audio stream available");
-      return { error: "No audio stream available" };
-    }
-
-    try {
-      const audioSettings = this.media.stream.getTracks()[0].getSettings();
-
-      this._logger?.info(this._logLabel, "Audio settings:", audioSettings);
-      const metadata = {
-        samplingRate:
-          audioSettings.sampleRate || this.media.audioContext?.sampleRate,
-        audioEncoding: "linear16",
-      };
-
-      this.dataChannel!.send({ type: "audio_metadata", payload: metadata });
-
-      return {
-        ok: true,
-      };
-    } catch (error) {
-      this._logger?.error(
-        this._logLabel,
-        "Error sending audio metadata",
-        error
-      );
-      return { error: "Error sending audio metadata" };
-    }
-  }
-
-  async playAudio(arrayBuffer: ArrayBuffer): Promise<TResponse> {
-    if (!this.media || !this.media.audioContext) {
-      this._logger?.error(
-        this._logLabel,
-        "Not audio context. It looks like connect() was not successful."
-      );
-      return {
-        error: "Not audio context. It looks like connect() was not successful.",
-      };
-    }
-
-    try {
-      this.media.isPlaying = true;
-      this.media.audioContext.resume();
-      const buffer = await this.media.audioContext.decodeAudioData(arrayBuffer);
-      this.media.source = this.media.audioContext.createBufferSource();
-      this.media.source.buffer = buffer;
-      this.media.source.connect(this.media.audioContext.destination);
-      this.media.source.start(0);
-    } catch (error) {
-      this.media.isPlaying = false;
-      this._logger?.error(this._logLabel, "Error playing audio", error);
-
-      return {
-        error,
-      };
-    }
-
-    return new Promise((resolve, reject) => {
-      try {
-        if (this.media.source) {
-          this.media.source.onended = () => {
-            this.media.isPlaying = false;
-
-            if (this.media.source && this.media.audioContext) {
-              this.media.source.disconnect(this.media.audioContext.destination);
-            }
-
-            resolve({ ok: true });
-          };
-        }
-      } catch (error) {
-        this.media.isPlaying = false;
-        this._logger?.error(this._logLabel, "Error playing audio", error);
-        reject({ error });
-      }
-    });
-  }
-
   async disconnect(): Promise<TResponse> {
     try {
+      // Cancelling connection request.
       this.abortController?.abort(
         "RealtimeWebSocketConnection.disconnect() is called."
       );
-      this.media.queue = [];
-      this.media.recorder?.stop();
+
+      // Resetting Sockets
       this.dataChannel?.send({ type: "websocket_stop" });
       this.socket?.close();
-
-      if (this.media.wavEncoderPort) {
-        await deregister(this.media.wavEncoderPort);
-        this.media.wavEncoderPort = null;
-      }
 
       this._isConnecting = false;
       this._logger?.info(this._logLabel, "Disconnected");
@@ -315,5 +234,9 @@ export class RealtimeWebSocketConnection {
         error,
       };
     }
+  }
+
+  isReady(): boolean {
+    return !!this.socket && this.socket.readyState === WebSocket.OPEN;
   }
 }

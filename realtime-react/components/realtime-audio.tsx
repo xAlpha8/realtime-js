@@ -3,10 +3,11 @@ import { Track } from "../../realtime-core";
 
 export type RealtimeAudioProps = {
   track: Track | null;
+  volume?: number;
 };
 
 export function RealtimeAudio(props: RealtimeAudioProps) {
-  const { track } = props;
+  const { track, volume = 100 } = props;
   const audioRef = useRef<HTMLAudioElement>(null);
 
   function pauseAudio() {
@@ -20,8 +21,9 @@ export function RealtimeAudio(props: RealtimeAudioProps) {
   useEffect(() => {
     if (track && audioRef.current) {
       audioRef.current.srcObject = track.stream;
+      audioRef.current.volume = volume / 100;
     }
-  }, [track]);
+  }, [track, volume]);
 
   return (
     <div>
