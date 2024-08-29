@@ -9,6 +9,7 @@ import {
 import { TRealtimeConfig } from "../realtime-core";
 import { AppHeader } from "./Header";
 import { Chat } from "./Chat";
+import { devVideo } from "lib";
 
 export type TRealtimeAppProps = {
   onDisconnect: () => void;
@@ -94,6 +95,22 @@ export function RealtimeApp(props: TRealtimeAppProps) {
       setIsRemoteAudioMute(true);
       getRemoteAudioTrack()?.pause();
     }
+  }
+
+  if (connectionStatus === "Failed") {
+    return (
+      <div className="flex h-screen w-screen justify-center">
+        <div className="flex flex-col max-w-[1400px] flex-1">
+          <AppHeader
+            status={connectionStatus}
+            onDisconnect={handleDisconnect}
+          />
+          <div className="flex flex-1 justify-center items-center text-5xl text-[#999]">
+            Failed to connect. Please try again.
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
