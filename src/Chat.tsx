@@ -104,10 +104,10 @@ export function Chat(props: ChatProps) {
             return (
               <div
                 key={index}
-                className="ml-auto text-right inline-flex flex-col space-y-1"
+                className="ml-auto text-right inline-flex flex-col space-y-1 max-w-[200px]"
               >
                 <span>User</span>
-                <span className=" py-2 px-4 rounded-full bg-[#333]">
+                <span className=" py-2 px-4 rounded-[8px] bg-[#333]">
                   {data}
                 </span>
               </div>
@@ -115,9 +115,12 @@ export function Chat(props: ChatProps) {
           }
 
           return (
-            <div key={index} className="mr-auto inline-flex flex-col space-y-1">
+            <div
+              key={index}
+              className="mr-auto inline-flex flex-col space-y-1 max-w-[200px]"
+            >
               <span>Avatar</span>
-              <span className=" py-2 px-4 rounded-full bg-[#007bff]">
+              <span className=" py-2 px-4 rounded-[8px] bg-[#007bff]">
                 {data}
               </span>
             </div>
