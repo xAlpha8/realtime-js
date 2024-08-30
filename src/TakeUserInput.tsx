@@ -39,7 +39,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
       <div className="user-input-page">
         <form className="form space-y-4 w-full max-w-lg">
           <h2>Playground</h2>
-          {/* <div className="flex flex-col space-y-2">
+          <div className="flex flex-col space-y-2">
             <h4>Function URL</h4>
             <input
               className="p-2"
@@ -48,7 +48,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
               required
             />
             <small>Required</small>
-          </div> */}
+          </div>
           <div className="flex flex-col space-y-2">
             <h4>Audio Options:</h4>
             <select
