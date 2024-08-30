@@ -75,7 +75,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
             </small>
           </div>
 
-          <div className="flex flex-col space-y-2">
+          {/* <div className="flex flex-col space-y-2">
             <h4>Video Options:</h4>
             <select
               className="p-2"
@@ -113,7 +113,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
               </label>
             </div>
             <small>If you want to share your screen.</small>
-          </div>
+          </div> */}
 
           <div className="flex flex-col space-y-2">
             <button type="button" className="button" onClick={handleFormSubmit}>
