@@ -79,6 +79,7 @@ button {
 
 .rt-video-container {
   flex: 1;
+  height: 100%;
   padding: 8px;
   display: flex;
   overflow: hidden;
@@ -91,7 +92,7 @@ button {
 }
 
 .rt-video {
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   height: 100%;
   width: 100%;

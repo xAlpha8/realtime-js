@@ -5,6 +5,7 @@ import { RealtimeApp } from "./RealtimeApp";
 
 import "./App.css";
 import { TRealtimeConfig } from "../realtime-core";
+import { Toaster } from "react-hot-toast";
 
 export default function App() {
   const [config, setConfig] = React.useState<TRealtimeConfig | null>(null);
@@ -21,6 +22,7 @@ export default function App() {
     <>
       {!config && <TakeUserInput onSubmit={onSubmit} />}
       {config && <RealtimeApp config={config} onDisconnect={onDisconnect} />}
+      <Toaster />
     </>
   );
 }
