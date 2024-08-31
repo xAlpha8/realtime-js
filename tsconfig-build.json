@@ -1,4 +1,10 @@
 {
-    "extends": "./tsconfig.json",
-    "include": ["lib"]
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "realtime-core/__mocks__/",
+    "realtime-core/__tests__/",
+    // Ignoring useWebSocket for now, will add it back once we
+    // merged the branch that implements useWebSocket.
+    "realtime-react/hooks/useWebSocket.ts"
+  ]
 }
