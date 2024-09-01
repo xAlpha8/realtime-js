@@ -1,16 +1,16 @@
 {
-  "name": "@adaptai/realtime-react",
+  "name": "@adaptai/realtime",
   "private": false,
   "version": "0.0.611",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
-    "dist",
+    "dist/*",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc --p ./tsconfig-build.json && vite build",
+    "build": "tsup",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest"
   },
@@ -29,7 +29,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
-    "terser": "^5.31.0",
+    "tsup": "8.2.4",
     "typescript": "^5.2.2",
     "vitest": "^2.0.5"
   },
