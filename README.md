@@ -1,9 +1,9 @@
 # INSTALLING
 
-Install realtime-react in your project:
+Install realtime in your project:
 
 ```
-npm i @adaptai/realtime-react
+npm i @adaptai/realtime
 ```
 
 ### Examples
