@@ -6,7 +6,7 @@ import {
   RealtimeChat,
   RealtimeVideo,
   TRealtimeConfig,
-} from "@adaptai/realtime";
+} from "@adaptai/realtime-react";
 
 export type TRealtimeAppProps = {
   onDisconnect: () => void;

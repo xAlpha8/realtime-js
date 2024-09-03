@@ -21,7 +21,7 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@adaptai/realtime": ["../../dist"]
+      "@adaptai/realtime-react": ["../../dist"]
     }
   },
   "include": ["src"]

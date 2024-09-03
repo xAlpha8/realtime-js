@@ -8,7 +8,7 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: "@adaptai/realtime",
+        find: "@adaptai/realtime-react",
         replacement: fileURLToPath(new URL("../../dist", import.meta.url)),
       },
     ],

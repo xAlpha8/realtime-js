@@ -1,5 +1,5 @@
 import React from "react";
-import { TRealtimeConfig } from "@adaptai/realtime";
+import { TRealtimeConfig } from "@adaptai/realtime-react";
 
 import { TakeUserInput } from "./TakeUserInput";
 import { RealtimeApp } from "./RealtimeApp";

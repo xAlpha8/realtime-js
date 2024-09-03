@@ -4,7 +4,7 @@ import {
   useAvailableMediaDevices,
   createConfig,
   ConsoleLogger,
-} from "@adaptai/realtime";
+} from "@adaptai/realtime-react";
 
 export type TTakeUserInputProps = {
   onSubmit: (config: TRealtimeConfig) => void;
