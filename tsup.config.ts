@@ -7,9 +7,6 @@ export default defineConfig({
     "./realtime-react/**/*.(ts|tsx)",
     "!**/*/__tests__/**/*",
     "!**/*/__mocks__/**/*",
-    // TODO: Remove this line once we merged the branch
-    // TODO: containing the implementation of useWebSocket.
-    "!./realtime-react/hooks/useWebSocket.ts",
   ],
   dts: true,
   format: ["cjs", "esm"],
