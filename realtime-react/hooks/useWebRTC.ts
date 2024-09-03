@@ -53,7 +53,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
       listener: TRealtimeConnectionListener
     ) => {
       if (_eventListeners.current[type]) {
-        _eventListeners.current[type].push(listener);
+        _eventListeners.current[type]?.push(listener);
       } else {
         _eventListeners.current[type] = [listener];
       }
@@ -69,7 +69,7 @@ export function useWebRTC(options: TUseWebRTCOptions) {
       if (!_eventListeners.current[type]) {
         return;
       }
-      _eventListeners.current[type] = _eventListeners.current[type].filter(
+      _eventListeners.current[type] = _eventListeners.current[type]?.filter(
         (fn) => fn !== listener
       );
     },

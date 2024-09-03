@@ -1,12 +1,12 @@
-import { useWebRTC } from "../realtime-react/hooks";
 import React from "react";
 import {
+  useWebRTC,
   RealtimeAudio,
   RealtimeAudioVisualizer,
   RealtimeChat,
   RealtimeVideo,
-} from "../realtime-react";
-import { TRealtimeConfig } from "../realtime-core";
+  TRealtimeConfig,
+} from "@adaptai/realtime-react";
 
 export type TRealtimeAppProps = {
   onDisconnect: () => void;

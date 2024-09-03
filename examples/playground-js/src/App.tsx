@@ -1,12 +1,10 @@
-import {
-  RealtimeAudio,
-  useAvailableMediaDevices,
-  useWebSocket,
-} from "../realtime-react";
+import React from "react";
+import { TRealtimeConfig } from "@adaptai/realtime-react";
+
+import { TakeUserInput } from "./TakeUserInput";
+import { RealtimeApp } from "./RealtimeApp";
 
 import "./App.css";
-import { ConsoleLogger, isMessageEvent } from "../realtime-core";
-import React from "react";
 
 export default function App() {
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
