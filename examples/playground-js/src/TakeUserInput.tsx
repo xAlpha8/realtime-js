@@ -1,6 +1,10 @@
-import { useAvailableMediaDevices } from "../realtime-react/hooks/useAvailableMediaDevices";
 import React from "react";
-import { ConsoleLogger, createConfig, TRealtimeConfig } from "../realtime-core";
+import {
+  TRealtimeConfig,
+  useAvailableMediaDevices,
+  createConfig,
+  ConsoleLogger,
+} from "@adaptai/realtime-react";
 
 export type TTakeUserInputProps = {
   onSubmit: (config: TRealtimeConfig) => void;

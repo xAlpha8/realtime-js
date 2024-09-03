@@ -1,8 +1,28 @@
-# React + Vite
+# Adapt playground
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Requirements
 
-Currently, two official plugins are available:
+- Node.js
+- npm (or yarn or pnpm)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Installation
+
+Run the following command to install dependencies:
+
+```bash
+npm install # or yarn install or pnpm install
+```
+
+
+## Development server
+
+To start a development server, run the following command:
+
+```bash
+npm run dev # or yarn dev or pnpm dev
+```
+
+This will start a local development server on `http://localhost:5173`.
+
+
+

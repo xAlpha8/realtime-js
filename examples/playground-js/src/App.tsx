@@ -1,10 +1,10 @@
 import React from "react";
-import { TakeUserInput } from "./TakeUserInput";
+import { TRealtimeConfig } from "@adaptai/realtime-react";
 
+import { TakeUserInput } from "./TakeUserInput";
 import { RealtimeApp } from "./RealtimeApp";
 
 import "./App.css";
-import { TRealtimeConfig } from "../realtime-core";
 
 export default function App() {
   const [config, setConfig] = React.useState<TRealtimeConfig | null>(null);
