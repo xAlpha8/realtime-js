@@ -3,7 +3,7 @@
 Install realtime in your project:
 
 ```
-npm i @adaptai/realtime
+npm i @adaptai/realtime-react
 ```
 
 ### Examples
