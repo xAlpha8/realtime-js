@@ -1,6 +1,7 @@
 import React from "react";
 import "./App.css";
 import { WebsocketApp } from "./websocket/WebsocketApp";
+import WebRTCApp from "./webrtc/WebRTCApp";
 
 export default function App() {
   const [screenToShow, setScreenToShow] = React.useState<
@@ -8,7 +9,7 @@ export default function App() {
   >("selection");
 
   if (screenToShow === "webrtc") {
-    return <div>Webrtc</div>;
+    return <WebRTCApp />;
   }
 
   if (screenToShow === "websocket") {
