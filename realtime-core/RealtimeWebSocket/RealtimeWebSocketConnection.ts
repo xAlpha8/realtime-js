@@ -3,6 +3,19 @@ import { TLogger, TRealtimeWebSocketConfig, TResponse } from "../shared/@types";
 import { fetchWithRetry } from "../utils";
 import { RealtimeWebSocketMediaManager } from "./RealtimeWebSocketMediaManager";
 
+export type TRealtimeWebSocketConnectOptions = {
+  /**
+   * This option specifies the number of times we should retry the fetch request.
+   *
+   * To connect to the backend, we need to fetch the offer URL, using the
+   * function URL provided in the config. We make a fetch request to this
+   * URL, sometimes this fetch request might fail, in that case we can retry the request.
+   *
+   * @default 7
+   */
+  retryOnFail?: number;
+};
+
 export class RealtimeWebSocketConnection {
   private readonly _config: TRealtimeWebSocketConfig;
   private readonly _logLabel = "RealtimeWebSocketConnection";
@@ -24,16 +37,21 @@ export class RealtimeWebSocketConnection {
   }
 
   private async _getOfferURL(
-    functionURL: string
+    functionURL: string,
+    retryOnFail = 7
   ): Promise<TResponse<string, string>> {
     try {
-      const response = await fetchWithRetry(functionURL, undefined, 7);
+      const response = await fetchWithRetry(
+        functionURL,
+        undefined,
+        retryOnFail
+      );
 
       const payload = (await response.json()) as unknown;
 
       // Waiting for connection to start.
       // Making fetch request to check whether it is started.
-      await fetchWithRetry(functionURL + "connections", undefined, 7);
+      await fetchWithRetry(functionURL + "connections", undefined, retryOnFail);
 
       if (!payload || typeof payload !== "object") {
         throw new Error(
@@ -101,7 +119,9 @@ export class RealtimeWebSocketConnection {
     }
   }
 
-  async connect(): Promise<TResponse> {
+  async connect(
+    options = {} as TRealtimeWebSocketConnectOptions
+  ): Promise<TResponse> {
     const config = this._config;
 
     if (!config.functionURL) {
@@ -131,7 +151,10 @@ export class RealtimeWebSocketConnection {
     }
 
     this.abortController = new AbortController();
-    const response = await this._getOfferURL(config.functionURL);
+    const response = await this._getOfferURL(
+      config.functionURL,
+      options.retryOnFail
+    );
 
     if (!response.ok || !response.data) {
       this._isConnecting = false;
