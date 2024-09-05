@@ -126,7 +126,6 @@ export class RealtimeWebSocketConnection {
   private async _onRecordingAvailable(
     event: IMediaRecorderEventMap["dataavailable"]
   ) {
-    console.log("Receiving data...");
     const base64 = await blobToBase64(event.data);
 
     if (!base64 || !this.dataChannel || !this.isReady()) {
