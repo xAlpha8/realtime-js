@@ -1,11 +1,9 @@
-import { IMediaRecorderEventMap } from "extendable-media-recorder";
 import React from "react";
 import {
   RealtimeWebSocketConnection,
   Track,
   TRealtimeWebSocketConfig,
 } from "../../realtime-core";
-import { blobToBase64 } from "./utils";
 
 export type TUseWebSocketOptions = {
   config: TRealtimeWebSocketConfig;
@@ -25,28 +23,6 @@ export function useWebSocket(options: TUseWebSocketOptions) {
   const [connectionStatus, setConnectionStatus] =
     React.useState<TWebSocketConnectionStatus>("new");
   const [remoteTrack, setRemoteTrack] = React.useState<Track | null>(null);
-
-  const onRecordingAvailable = React.useCallback(
-    (event: IMediaRecorderEventMap["dataavailable"]) => {
-      blobToBase64(event.data).then((base64) => {
-        if (
-          !base64 ||
-          !connection ||
-          !connection.dataChannel ||
-          !connection.isReady()
-        ) {
-          return;
-        }
-
-        if (connection.mediaManager.track?.isMute()) {
-          return;
-        }
-
-        connection.dataChannel?.send({ type: "audio", data: base64 });
-      });
-    },
-    [connection]
-  );
 
   const connect = React.useCallback(async () => {
     setConnectionStatus("connecting");
@@ -68,13 +44,9 @@ export function useWebSocket(options: TUseWebSocketOptions) {
     }
 
     await connection.disconnect();
-    connection.mediaManager.recorder?.removeEventListener(
-      "dataavailable",
-      onRecordingAvailable
-    );
 
     setConnectionStatus("disconnected");
-  }, [connection, onRecordingAvailable]);
+  }, [connection]);
 
   const getLocalAudioTrack = React.useCallback(() => {
     if (!connection) return null;
@@ -93,24 +65,6 @@ export function useWebSocket(options: TUseWebSocketOptions) {
     setRemoteTrack(response.data);
     return response.data;
   }, [connection, remoteTrack]);
-
-  React.useEffect(() => {
-    if (connection) {
-      connection.mediaManager.recorder?.addEventListener(
-        "dataavailable",
-        onRecordingAvailable
-      );
-    }
-
-    return () => {
-      if (connection) {
-        connection.mediaManager.recorder?.removeEventListener(
-          "dataavailable",
-          onRecordingAvailable
-        );
-      }
-    };
-  }, [connection, onRecordingAvailable]);
 
   return {
     connect,

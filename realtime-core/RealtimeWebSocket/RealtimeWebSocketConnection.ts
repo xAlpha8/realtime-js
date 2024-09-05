@@ -1,7 +1,9 @@
+import { IMediaRecorderEventMap } from "extendable-media-recorder";
 import { WebSocketDataChannel } from "../DataChannel";
 import { TLogger, TRealtimeWebSocketConfig, TResponse } from "../shared/@types";
 import { fetchWithRetry } from "../utils";
 import { RealtimeWebSocketMediaManager } from "./RealtimeWebSocketMediaManager";
+import { blobToBase64 } from "../utils";
 
 export type TRealtimeWebSocketConnectOptions = {
   /**
@@ -34,6 +36,8 @@ export class RealtimeWebSocketConnection {
     this.dataChannel = null;
     this.socket = null;
     this.mediaManager = new RealtimeWebSocketMediaManager(config);
+
+    this._onRecordingAvailable = this._onRecordingAvailable.bind(this);
   }
 
   private async _getOfferURL(
@@ -117,6 +121,23 @@ export class RealtimeWebSocketConnection {
       );
       return { error: "Error sending audio metadata" };
     }
+  }
+
+  private async _onRecordingAvailable(
+    event: IMediaRecorderEventMap["dataavailable"]
+  ) {
+    console.log("Receiving data...");
+    const base64 = await blobToBase64(event.data);
+
+    if (!base64 || !this.dataChannel || !this.isReady()) {
+      return;
+    }
+
+    if (this.mediaManager.track?.isMute()) {
+      return;
+    }
+
+    this.dataChannel?.send({ type: "audio", data: base64 });
   }
 
   async connect(
@@ -214,9 +235,19 @@ export class RealtimeWebSocketConnection {
       return sendMetadataResponse;
     }
 
+    if (!this.mediaManager.recorder) {
+      return {
+        error: "Failed to initialize recorder.",
+      };
+    }
+
     try {
       // Starting recorder
-      this.mediaManager.recorder!.start(1);
+      this.mediaManager.recorder.start(1);
+      this.mediaManager.recorder.addEventListener(
+        "dataavailable",
+        this._onRecordingAvailable
+      );
     } catch (error) {
       this._logger?.error(this._logLabel, "Error starting recorder", error);
       return {
@@ -240,6 +271,14 @@ export class RealtimeWebSocketConnection {
       this.abortController?.abort(
         "RealtimeWebSocketConnection.disconnect() is called."
       );
+
+      // Removing EventListeners.
+      if (this.mediaManager.recorder) {
+        this.mediaManager.recorder.removeEventListener(
+          "dataavailable",
+          this._onRecordingAvailable
+        );
+      }
 
       // Resetting Sockets
       this.dataChannel?.send({ type: "websocket_stop" });
