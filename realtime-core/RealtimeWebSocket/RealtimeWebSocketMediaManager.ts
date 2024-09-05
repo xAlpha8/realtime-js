@@ -47,6 +47,12 @@ export class RealtimeWebSocketMediaManager {
 
       const audioContext = new AudioContext();
       const stream = await navigator.mediaDevices.getUserMedia({
+        /**
+         * If this._config.audio is not defined, then we will use the default
+         * audio device. By setting audio to `true`, the browser
+         * will pick the default audio device for the user.
+         *
+         */
         audio: this._config.audio || true,
       });
       this.stream = stream;
