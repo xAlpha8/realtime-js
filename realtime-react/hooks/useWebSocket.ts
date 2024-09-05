@@ -1,7 +1,6 @@
 import { IMediaRecorderEventMap } from "extendable-media-recorder";
 import React from "react";
 import {
-  ETrackOrigin,
   RealtimeWebSocketConnection,
   Track,
   TRealtimeWebSocketConfig,
@@ -85,19 +84,14 @@ export function useWebSocket(options: TUseWebSocketOptions) {
 
   const getRemoteAudioTrack = React.useCallback(() => {
     if (remoteTrack) return remoteTrack;
-    if (!connection || !connection.mediaManager.audioContext) return null;
+    if (!connection) return null;
 
-    const destination =
-      connection.mediaManager.audioContext.createMediaStreamDestination();
-    connection.mediaManager.remoteAudioDestination = destination;
+    const response = connection.mediaManager.getRemoteAudioTrack();
 
-    const track = new Track(
-      destination.stream.getTracks()[0],
-      ETrackOrigin.Remote
-    );
-    setRemoteTrack(track);
+    if (!response.ok || !response.data) return null;
 
-    return track;
+    setRemoteTrack(response.data);
+    return response.data;
   }, [connection, remoteTrack]);
 
   React.useEffect(() => {

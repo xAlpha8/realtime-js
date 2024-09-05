@@ -20,6 +20,7 @@ export class RealtimeWebSocketMediaManager {
   source?: AudioBufferSourceNode | null;
   wavEncoderPort?: MessagePort | null;
   remoteAudioDestination?: MediaStreamAudioDestinationNode | null;
+  remoteAudioTrack?: Track | null;
   hasRegisteredWAVEncoder: boolean;
   audioStartTime: number;
   audioEndTime: number;
@@ -194,6 +195,31 @@ export class RealtimeWebSocketMediaManager {
         error
       );
       return { error: "Error sending audio metadata" };
+    }
+  }
+
+  getRemoteAudioTrack(): TResponse<string, Track> {
+    if (!this.audioContext) {
+      return { error: "No audio context available" };
+    }
+
+    if (this.remoteAudioTrack) {
+      return { ok: true, data: this.remoteAudioTrack };
+    }
+
+    try {
+      this.remoteAudioDestination =
+        this.audioContext.createMediaStreamDestination();
+      const track = new Track(
+        this.remoteAudioDestination.stream.getTracks()[0],
+        ETrackOrigin.Remote
+      );
+
+      this.remoteAudioTrack = track;
+
+      return { ok: true, data: this.remoteAudioTrack };
+    } catch (error) {
+      return { error: "Error creating remote audio destination" };
     }
   }
 }
