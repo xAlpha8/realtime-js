@@ -122,6 +122,7 @@ export function useWebSocket(options: TUseWebSocketOptions) {
     connect,
     disconnect,
     connectionStatus,
+    dataChannel: connection?.dataChannel,
     getLocalAudioTrack,
     getRemoteAudioTrack,
     connection,
