@@ -1,26 +1,27 @@
 import React from "react";
-import { TRealtimeConfig } from "@adaptai/realtime-react";
-
-import { TakeUserInput } from "./TakeUserInput";
-import { RealtimeApp } from "./RealtimeApp";
-
 import "./App.css";
+import { WebsocketApp } from "./websocket/WebsocketApp";
+import WebRTCApp from "./webrtc/WebRTCApp";
 
 export default function App() {
-  const [config, setConfig] = React.useState<TRealtimeConfig | null>(null);
+  const [screenToShow, setScreenToShow] = React.useState<
+    "selection" | "webrtc" | "websocket"
+  >("selection");
 
-  function onSubmit(config: TRealtimeConfig) {
-    setConfig(config);
+  if (screenToShow === "webrtc") {
+    return <WebRTCApp />;
   }
 
-  function onDisconnect() {
-    setConfig(null);
+  if (screenToShow === "websocket") {
+    return <WebsocketApp />;
   }
 
   return (
-    <>
-      {!config && <TakeUserInput onSubmit={onSubmit} />}
-      {config && <RealtimeApp config={config} onDisconnect={onDisconnect} />}
-    </>
+    <div className="container">
+      <button onClick={() => setScreenToShow("webrtc")}>Webrtc Example</button>
+      <button onClick={() => setScreenToShow("websocket")}>
+        Websocket Example
+      </button>
+    </div>
   );
 }

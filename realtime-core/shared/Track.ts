@@ -67,4 +67,8 @@ export class Track {
   resume() {
     this.track.enabled = true;
   }
+
+  isMute() {
+    return this.track.enabled === false;
+  }
 }

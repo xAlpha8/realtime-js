@@ -9,7 +9,7 @@ export default defineConfig({
     alias: [
       {
         find: "@adaptai/realtime-react",
-        replacement: fileURLToPath(new URL("../../dist", import.meta.url)),
+        replacement: fileURLToPath(new URL("../../index.ts", import.meta.url)),
       },
     ],
   },

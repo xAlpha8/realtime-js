@@ -170,6 +170,28 @@ export type TRealtimeConfig = {
   logger?: TLogger;
 };
 
+export type TRealtimeWebSocketConfig = {
+  /**
+   * URL of the function to be invoked for establishing a connection.
+   */
+  functionURL?: string;
+
+  /**
+   * Audio config.
+   */
+  audio?: MediaTrackConstraints;
+
+  /**
+   * Websocket protocols.
+   */
+  protocols?: string | string[];
+
+  /**
+   * Logger configuration for handling and storing logs related to the connection.
+   */
+  logger?: TLogger;
+};
+
 export type TMedia = {
   /**
    * The media track, which represents a single media track within a stream,

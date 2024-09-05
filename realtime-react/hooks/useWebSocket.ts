@@ -1,130 +1,78 @@
-import { useActor } from "@xstate/react";
 import React from "react";
 import {
-  realtimeConnectionMachine,
-  TRealtimeConnectionListener,
-  TRealtimeConnectionListenerType,
-  TRealtimeConfig,
+  RealtimeWebSocketConnection,
   Track,
-  WebSocketDataChannel,
+  TRealtimeWebSocketConfig,
 } from "../../realtime-core";
 
-export type TUseWebSocketReturn<T = unknown> = {
-  ok?: boolean;
-  error?: {
-    msg: string;
-  };
-  data?: T;
+export type TUseWebSocketOptions = {
+  config: TRealtimeWebSocketConfig;
 };
 
-export type TUseWebSocketOptions = {
-  config: TRealtimeConfig;
-};
+export type TWebSocketConnectionStatus =
+  | "new"
+  | "connecting"
+  | "connected"
+  | "failed"
+  | "disconnected";
 
 export function useWebSocket(options: TUseWebSocketOptions) {
-  const [actor, send] = useActor(realtimeConnectionMachine);
-  const [remoteTracks, setRemoteTracks] = React.useState<Track[]>([]);
-  const [dataChannel, setDataChannel] =
-    React.useState<WebSocketDataChannel | null>(null);
-
   const { config } = options;
+  const [connection, setConnection] =
+    React.useState<RealtimeWebSocketConnection | null>(null);
+  const [connectionStatus, setConnectionStatus] =
+    React.useState<TWebSocketConnectionStatus>("new");
+  const [remoteTrack, setRemoteTrack] = React.useState<Track | null>(null);
 
-  const _eventListeners = React.useRef<
-    Partial<
-      Record<TRealtimeConnectionListenerType, TRealtimeConnectionListener[]>
-    >
-  >({});
+  const connect = React.useCallback(async () => {
+    setConnectionStatus("connecting");
+    const ws = new RealtimeWebSocketConnection(config);
+    const response = await ws.connect();
+    if (!response.ok) {
+      // This will release media, if it is setup.
+      await ws.disconnect();
+      setConnectionStatus("failed");
+      return console.error("Failed to connect", response);
+    }
+    setConnection(ws);
+    setConnectionStatus("connected");
+  }, [config]);
 
-  const _handleOnTrack = React.useCallback((event: unknown) => {
-    throw new Error("Function not implemented.");
-  }, []);
+  const disconnect = React.useCallback(async () => {
+    if (!connection) {
+      return;
+    }
 
-  const _registerEventListener = React.useCallback(
-    (
-      type: TRealtimeConnectionListenerType,
-      listener: TRealtimeConnectionListener
-    ) => {
-      if (_eventListeners.current[type]) {
-        _eventListeners.current[type].push(listener);
-      } else {
-        _eventListeners.current[type] = [listener];
-      }
-    },
-    []
-  );
+    await connection.disconnect();
 
-  const _unregisterEventListener = React.useCallback(
-    (
-      type: TRealtimeConnectionListenerType,
-      listener: TRealtimeConnectionListener
-    ) => {
-      if (!_eventListeners.current[type]) {
-        return;
-      }
-      _eventListeners.current[type] = _eventListeners.current[type].filter(
-        (fn) => fn !== listener
-      );
-    },
-    []
-  );
-
-  const addEventListener = React.useCallback((): TUseWebSocketReturn => {
-    throw new Error("Function not implemented.");
-  }, []);
-
-  const removeEventListener = React.useCallback(() => {
-    throw new Error("Function not implemented.");
-  }, []);
-
-  const connect = React.useCallback(() => {
-    throw new Error("Function not implemented.");
-  }, []);
-
-  const disconnect = React.useCallback((): TUseWebSocketReturn => {
-    throw new Error("Function not implemented");
-  }, []);
-
-  const getLocalTracks = React.useCallback(() => {
-    throw new Error("Function not implemented.");
-  }, []);
+    setConnectionStatus("disconnected");
+  }, [connection]);
 
   const getLocalAudioTrack = React.useCallback(() => {
-    throw new Error("Function not implemented.");
-  }, []);
+    if (!connection) return null;
 
-  const getLocalVideoTrack = React.useCallback(() => {
-    throw new Error("Function not implemented.");
-  }, []);
-
-  const getRemoteTracks = React.useCallback(() => {
-    throw new Error("Function not implemented.");
-  }, []);
+    return connection.mediaManager.track;
+  }, [connection]);
 
   const getRemoteAudioTrack = React.useCallback(() => {
-    throw new Error("Function not implemented.");
-  }, []);
+    if (remoteTrack) return remoteTrack;
+    if (!connection) return null;
 
-  const getRemoteVideoTrack = React.useCallback(() => {
-    throw new Error("Function not implemented.");
-  }, []);
+    const response = connection.mediaManager.getRemoteAudioTrack();
 
-  const reset = React.useCallback((): TUseWebSocketReturn => {
-    throw new Error("Function not implemented.");
-  }, []);
+    if (!response.ok || !response.data) return null;
+
+    setRemoteTrack(response.data);
+    return response.data;
+  }, [connection, remoteTrack]);
 
   return {
-    connectionStatus: actor.value,
     connect,
     disconnect,
-    reset,
-    dataChannel,
-    addEventListener,
-    removeEventListener,
+    connectionStatus,
+    dataChannel: connection?.dataChannel,
     getLocalAudioTrack,
-    getLocalVideoTrack,
-    getLocalTracks,
     getRemoteAudioTrack,
-    getRemoteVideoTrack,
-    getRemoteTracks,
+    connection,
   };
 }
