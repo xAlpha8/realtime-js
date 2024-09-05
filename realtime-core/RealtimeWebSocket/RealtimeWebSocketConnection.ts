@@ -36,9 +36,7 @@ export class RealtimeWebSocketConnection {
       await fetchWithRetry(functionURL + "connections", undefined, 7);
 
       if (!payload || typeof payload !== "object") {
-        throw new Error(
-          `Payload is undefined or not an object. Type: ${typeof payload}`
-        );
+        throw new Error("Error in establishing connection.");
       }
 
       if (
