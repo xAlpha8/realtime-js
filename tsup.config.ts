@@ -5,6 +5,7 @@ export default defineConfig({
     "./index.ts",
     "./realtime-core/**/*.ts",
     "./realtime-react/**/*.(ts|tsx)",
+    "./adaptai-global-style.css",
     "!**/*/__tests__/**/*",
     "!**/*/__mocks__/**/*",
   ],
