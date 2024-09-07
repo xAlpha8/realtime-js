@@ -1,9 +1,14 @@
 import React from "react";
 import {
   TRealtimeConfig,
-  useAvailableMediaDevices,
   createConfig,
   ConsoleLogger,
+  RealtimeForm,
+  RealtimeFunctionURLInput,
+  RealtimeAudioInput,
+  RealtimeVideoInput,
+  RealtimeFormButton,
+  RealtimeShareScreenInput,
 } from "@adaptai/realtime-react";
 
 export type TTakeUserInputProps = {
@@ -12,9 +17,7 @@ export type TTakeUserInputProps = {
 
 export function TakeUserInput(props: TTakeUserInputProps) {
   const { onSubmit } = props;
-  const { availableAudioDevices, availableVideoDevices } =
-    useAvailableMediaDevices();
-  const [canShareScreen, setCanShareScreen] = React.useState(false);
+  const [shareScreen, setShareScreen] = React.useState("");
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
   const [videoDeviceId, setVideoDeviceId] = React.useState("");
   const [functionURL, setFunctionURL] = React.useState(
@@ -27,7 +30,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
         functionURL,
         audioDeviceId,
         videoDeviceId,
-        screenConstraints: canShareScreen ? {} : undefined,
+        screenConstraints: shareScreen === "yes" ? {} : undefined,
         logger: ConsoleLogger.getLogger(),
       });
       onSubmit(config);
@@ -37,78 +40,28 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   }
 
   return (
-    <div className="user-input-page">
-      <form className="form">
-        <h2>Realtime App</h2>
-        <div className="stack">
-          <h4>Function URL</h4>
-          <input
-            value={functionURL}
-            onChange={(e) => setFunctionURL(e.target.value)}
-            required
-          />
-          <small>Required</small>
-        </div>
-        <div className="stack">
-          <h4>Audio Options:</h4>
-          <select
-            value={audioDeviceId}
-            onChange={(e) => setAudioDeviceId(e.target.value)}
-          >
-            <option value="" disabled>
-              Select audio device
-            </option>
-            {availableAudioDevices.map((option, index) => (
-              <option key={index} value={option.deviceId}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <small>
-            If you don't want to use any audio device then leave this empty.
-          </small>
-        </div>
-
-        <div className="stack">
-          <h4>Video Options:</h4>
-          <select
-            value={videoDeviceId}
-            onChange={(e) => setVideoDeviceId(e.target.value)}
-          >
-            <option value="" disabled>
-              Select video device
-            </option>
-            {availableVideoDevices.map((option, index) => (
-              <option key={index} value={option.deviceId}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <small>
-            If you don't want to use any video device then leave this empty.
-          </small>
-        </div>
-
-        <div className="stack">
-          <div style={{ marginBottom: "4px" }}>
-            <label>
-              Screen Share&nbsp;
-              <input
-                type="checkbox"
-                checked={canShareScreen}
-                onChange={() => setCanShareScreen(!canShareScreen)}
-              />
-            </label>
-          </div>
-          <small>If you want to share your screen.</small>
-        </div>
-
-        <div className="stack">
-          <button type="button" onClick={handleFormSubmit}>
-            Run
-          </button>
-        </div>
-      </form>
-    </div>
+    <RealtimeForm>
+      <h3 className="mb-4 font-bold text-lg">WebRTC Example</h3>
+      <RealtimeFunctionURLInput
+        onChange={(e) => setFunctionURL(e.currentTarget.value)}
+        value={functionURL}
+      />
+      <RealtimeAudioInput
+        value={audioDeviceId}
+        onChange={setAudioDeviceId}
+        description="Select the microphone you want to use. If you don't see your microphone, make sure it is plugged in."
+      />
+      <RealtimeVideoInput
+        value={videoDeviceId}
+        onChange={setVideoDeviceId}
+        description="Select the camera you want to use. If you don't see your camera, make sure it is plugged in."
+      />
+      <RealtimeShareScreenInput
+        value={shareScreen}
+        onChange={setShareScreen}
+        description="If you select 'Yes', your screen will be shared."
+      />
+      <RealtimeFormButton onClick={handleFormSubmit}>Run</RealtimeFormButton>
+    </RealtimeForm>
   );
 }

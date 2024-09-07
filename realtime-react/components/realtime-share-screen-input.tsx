@@ -1,4 +1,3 @@
-import { useAvailableMediaDevices } from "../hooks";
 import { FormDescription, FormItem, FormLabel } from "./__internal/form";
 import {
   Select,
@@ -8,18 +7,15 @@ import {
   SelectValue,
 } from "./__internal/select";
 
-export type TRealtimeAudioInputProps = {
-  /**
-   * The current selected audio device id.
-   */
+export type TRealtimeShareScreenInputProps = {
   value: string;
   /**
-   * @default "Select a audio device"
+   * @default "Do you want to share you screen"
    */
   placeholder?: string;
 
   /**
-   * @default "audio"
+   * @default "Screen"
    */
   label?: string;
 
@@ -34,27 +30,30 @@ export type TRealtimeAudioInputProps = {
   onChange: (value: string) => void;
 };
 
-export function RealtimeAudioInput(props: TRealtimeAudioInputProps) {
+export function RealtimeShareScreenInput(
+  props: TRealtimeShareScreenInputProps
+) {
   const {
     value,
     onChange,
-    placeholder = "Select audio device",
-    label = "Audio",
+    placeholder = "Do you want to share your screen",
+    label = "Screen",
     description,
   } = props;
 
-  const { availableAudioDevices } = useAvailableMediaDevices();
-
   return (
     <FormItem>
-      <FormLabel htmlFor="audio-device">{label}</FormLabel>
+      <FormLabel htmlFor="share-screen">{label}</FormLabel>
       <Select onValueChange={onChange} value={value}>
-        <SelectTrigger id="audio-device">
+        <SelectTrigger id="share-screen">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {availableAudioDevices.map(({ deviceId, label }) => (
-            <SelectItem key={deviceId} value={deviceId}>
+          {[
+            { label: "Yes", value: "yes" },
+            { label: "No", value: "no" },
+          ].map(({ value, label }) => (
+            <SelectItem key={value} value={value}>
               {label}
             </SelectItem>
           ))}

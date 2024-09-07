@@ -4,6 +4,10 @@ import { Input } from "./__internal/input";
 
 export type TRealtimeFunctionURLInputProps = {
   /**
+   * function url input.
+   */
+  value: string;
+  /**
    * @default "https://infra.getadapt.ai/run/..."
    */
   placeholder?: string;
@@ -28,6 +32,7 @@ export function RealtimeFunctionURLInput(
   props: TRealtimeFunctionURLInputProps
 ) {
   const {
+    value,
     onChange,
     placeholder = "https://infra.getadapt.ai/run/...",
     description,
@@ -36,8 +41,11 @@ export function RealtimeFunctionURLInput(
 
   return (
     <FormItem>
-      <FormLabel htmlFor="FunctionURL-device">{label}</FormLabel>
-      <Input placeholder={placeholder} onChange={onChange} />
+      <FormLabel className="space-y-2">
+        <div className="inline">{label}</div>
+
+        <Input placeholder={placeholder} value={value} onChange={onChange} />
+      </FormLabel>
       {description && <FormDescription>{description}</FormDescription>}
     </FormItem>
   );

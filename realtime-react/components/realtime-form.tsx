@@ -20,5 +20,7 @@ export function RealtimeForm(props: TRealtimeFormProps) {
 
 export function RealtimeFormButton(props: ButtonProps) {
   const { className, ...rest } = props;
-  return <Button type="button" className={cn("w-full", className)} {...rest} />;
+  return (
+    <Button type="button" className={cn("w-full !mt-8", className)} {...rest} />
+  );
 }

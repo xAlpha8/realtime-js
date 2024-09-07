@@ -10,6 +10,10 @@ import {
 
 export type TRealtimeVideoInputProps = {
   /**
+   * The current selected video device id.
+   */
+  value: string;
+  /**
    * @default "Select a video device"
    */
   placeholder?: string;
@@ -32,6 +36,7 @@ export type TRealtimeVideoInputProps = {
 
 export function RealtimeVideoInput(props: TRealtimeVideoInputProps) {
   const {
+    value,
     onChange,
     placeholder = "Select video device",
     label = "Video",
@@ -43,7 +48,7 @@ export function RealtimeVideoInput(props: TRealtimeVideoInputProps) {
   return (
     <FormItem>
       <FormLabel htmlFor="video-device">{label}</FormLabel>
-      <Select onValueChange={onChange}>
+      <Select onValueChange={onChange} value={value}>
         <SelectTrigger id="video-device">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
