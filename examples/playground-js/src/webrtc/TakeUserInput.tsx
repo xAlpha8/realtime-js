@@ -8,7 +8,6 @@ import {
   RealtimeAudioInput,
   RealtimeVideoInput,
   RealtimeFormButton,
-  RealtimeShareScreenInput,
 } from "@adaptai/realtime-react";
 
 export type TTakeUserInputProps = {
@@ -20,9 +19,7 @@ export function TakeUserInput(props: TTakeUserInputProps) {
   const [shareScreen, setShareScreen] = React.useState("");
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
   const [videoDeviceId, setVideoDeviceId] = React.useState("");
-  const [functionURL, setFunctionURL] = React.useState(
-    "https://us0-dev.getadapt.ai/run/3e75182729bb655682854a6e6971238b"
-  );
+  const [functionURL, setFunctionURL] = React.useState("http://localhost:8080");
 
   function handleFormSubmit() {
     try {
@@ -55,11 +52,6 @@ export function TakeUserInput(props: TTakeUserInputProps) {
         value={videoDeviceId}
         onChange={setVideoDeviceId}
         description="Select the camera you want to use. If you don't see your camera, make sure it is plugged in."
-      />
-      <RealtimeShareScreenInput
-        value={shareScreen}
-        onChange={setShareScreen}
-        description="If you select 'Yes', your screen will be shared."
       />
       <RealtimeFormButton onClick={handleFormSubmit}>Run</RealtimeFormButton>
     </RealtimeForm>

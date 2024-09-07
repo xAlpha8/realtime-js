@@ -165,7 +165,8 @@ export class RealtimeConnectionNegotiator {
         );
       }
 
-      const offerURL = payload.address + "/offer";
+      const offerURL =
+        payload.address.replace("0.0.0.0", "localhost") + "/offer";
 
       return {
         ok: true,

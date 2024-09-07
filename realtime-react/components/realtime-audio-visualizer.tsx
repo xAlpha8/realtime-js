@@ -18,11 +18,11 @@ export function RealtimeAudioVisualizer(props: RealtimeAudioVisualizerProps) {
         {
           mode: 10,
           channelLayout: "single",
+          gradient: "rainbow",
           fsElement: audioVisualizerRef.current!,
-          frequencyScale: "bark",
-          colorMode: "gradient",
-          gradientLeft: "rainbow",
-          gradientRight: "rainbow",
+          frequencyScale: "log",
+          colorMode: "bar-index",
+          overlay: true,
           linearAmplitude: false,
           linearBoost: 1.8,
           lineWidth: 1.5,
@@ -30,8 +30,15 @@ export function RealtimeAudioVisualizer(props: RealtimeAudioVisualizerProps) {
           weightingFilter: "D",
           showScaleX: false,
           showScaleY: false,
+          showBgColor: false,
         }
       );
+
+      audioMotionRef.current.registerGradient("rainbow", {
+        bgColor: "#fff",
+        dir: "h",
+        colorStops: ["#fff", "#eee", "#ddd"],
+      });
     }
 
     if (track && audioVisualizerRef.current) {
@@ -49,5 +56,5 @@ export function RealtimeAudioVisualizer(props: RealtimeAudioVisualizerProps) {
     };
   }, [track]);
 
-  return <div className="rt-audio-visualizer" ref={audioVisualizerRef}></div>;
+  return <div ref={audioVisualizerRef}></div>;
 }
