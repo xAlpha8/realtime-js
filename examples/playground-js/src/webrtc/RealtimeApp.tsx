@@ -88,7 +88,11 @@ export function RealtimeApp(props: TRealtimeAppProps) {
           remoteAudioTrack={getRemoteAudioTrack()}
         />
       </div>
-      <div className="w-[300px] ">{/* TODO add chat section. */}</div>
+      {dataChannel && (
+        <div className="w-[350px] px-4">
+          <RealtimeChat dataChannel={dataChannel} />
+        </div>
+      )}
     </div>
   );
 }

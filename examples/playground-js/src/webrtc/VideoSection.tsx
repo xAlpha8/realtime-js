@@ -86,11 +86,27 @@ export function VideoSection(props: TVideoSectionProps) {
           (remoteTrack?.stream.active ? "w-12 h-6 top-4 left-4" : "inset-3")
         }
       >
+        <div
+          className={
+            "uppercase absolute top-2 right-4 font-bold text-sm z-10 " +
+            (remoteTrack?.stream.active ? "text-muted" : "text-gray-700")
+          }
+        >
+          Remote
+        </div>
         <RealtimeAudioVisualizer track={remoteAudioTrack} />
       </div>
 
       <div className="h-52 w-96 absolute bottom-4 right-4 rounded border bg-white">
         <div className="h-full w-full relative group">
+          <div
+            className={
+              "uppercase absolute top-1 left-2 font-bold text-sm z-10 " +
+              (localTrack?.stream.active ? "text-muted" : "text-gray-700")
+            }
+          >
+            Local
+          </div>
           <RealtimeVideo track={localTrack} />
           <Button
             className="absolute right-4 top-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
