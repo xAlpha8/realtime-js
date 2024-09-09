@@ -16,29 +16,34 @@ export function RealtimeAudioVisualizer(props: RealtimeAudioVisualizerProps) {
       audioMotionRef.current = new AudioMotionAnalyzer(
         audioVisualizerRef.current!,
         {
-          mode: 10,
+          mode: 5,
+          alphaBars: false,
+          ansiBands: false,
+          barSpace: 1,
           channelLayout: "single",
-          gradient: "rainbow",
-          fsElement: audioVisualizerRef.current!,
-          frequencyScale: "log",
-          colorMode: "bar-index",
-          overlay: true,
-          linearAmplitude: false,
-          linearBoost: 1.8,
-          lineWidth: 1.5,
+          colorMode: "bar-level",
+          frequencyScale: "bark",
+          gradient: "prism",
+          ledBars: false,
+          linearAmplitude: true,
+          linearBoost: 1.5,
+          lumiBars: false,
+          maxFreq: 16000,
+          minFreq: 30,
+          radial: false,
+          reflexRatio: 0.5,
+          reflexAlpha: 1,
+          roundBars: true,
           showPeaks: false,
-          weightingFilter: "D",
           showScaleX: false,
-          showScaleY: false,
-          showBgColor: false,
+          smoothing: 0.7,
+          weightingFilter: "D",
+          overlay: true,
+          bgAlpha: 0,
+          minDecibels: -50,
+          outlineBars: true,
         }
       );
-
-      audioMotionRef.current.registerGradient("rainbow", {
-        bgColor: "#fff",
-        dir: "h",
-        colorStops: ["#fff", "#eee", "#ddd"],
-      });
     }
 
     if (track && audioVisualizerRef.current) {
@@ -56,5 +61,5 @@ export function RealtimeAudioVisualizer(props: RealtimeAudioVisualizerProps) {
     };
   }, [track]);
 
-  return <div ref={audioVisualizerRef}></div>;
+  return <div className="h-full w-full" ref={audioVisualizerRef}></div>;
 }
