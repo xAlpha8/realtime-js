@@ -1,4 +1,8 @@
 class AudioProcessor extends AudioWorkletProcessor {
+    private audioData: Float32Array[];
+    private index: number;
+    private isTalking: boolean;
+    private i: number;
     constructor() {
       super();
       this.port.onmessage = this.handleMessage.bind(this);
@@ -12,12 +16,12 @@ class AudioProcessor extends AudioWorkletProcessor {
      * Handles incoming messages from the main thread.
      * @param {MessageEvent} event - The message event containing audio data.
      */
-    async handleMessage(event) {
-      if (event.data.type === "b64_audio") {
+    async handleMessage(event: MessageEvent): Promise<void> {
+      if (event.data.type === "b64_arrayBuffer") {
         try {
           // Decode the audio data
-          console.log("Decoding audio", this.i, event.data.audio);
-          const audioData = await this.decodeAudio(event.data.audio);
+          // console.log("Decoding audio", this.i, event.data.audio);
+          const audioData = await this.decodeAudio(event.data.buffer);
           this.audioData.push(audioData);
           this.i += 1;
         } catch (error) {
@@ -36,21 +40,35 @@ class AudioProcessor extends AudioWorkletProcessor {
      * @param {ArrayBuffer} arrayBuffer - The raw audio data.
      * @returns {Promise<Float32Array>} The decoded audio data.
      */
-    async decodeAudio(base64EncodedAudio: string) {
+    async decodeAudio(b64ArrayBuffer: ArrayBuffer) {
       // Note: AudioContext is not available in AudioWorkletGlobalScope
       // We'll use a simple PCM decoder for this example
       // In a real-world scenario, you might want to use a more robust decoder library
-      const arrayBuffer = Buffer.from(base64EncodedAudio, "base64").buffer
-      const dataArray = new Uint8Array(arrayBuffer);
-      const view = new DataView(dataArray.buffer);
-      const pcmData = new Float32Array(dataArray.byteLength / 2);
-      for (let i = 0; i < pcmData.length; i++) {
-        pcmData[i] = view.getInt16(i * 2, true) / Math.pow(2, 16 - 1);
+      console.log("About to decode audio")
+      try {
+        const dataArray = new Uint8Array(b64ArrayBuffer);
+        console.log("Converted to Uint8");
+        const view = new DataView(dataArray.buffer);
+        const pcmData = new Float32Array(dataArray.byteLength / 2);
+        for (let i = 0; i < pcmData.length; i++) {
+          pcmData[i] = view.getInt16(i * 2, true) / Math.pow(2, 16 - 1);
+        }
+        return pcmData;
+      } catch (error) {
+        console.error("Error decoding audio:", error);
+        throw error; // Re-throw the error to be caught in the calling function
       }
-      return pcmData;
     }
   
-    process(inputs, outputs, parameters) {
+    // callback AudioWorkletProcessCallback =
+    // boolean (FrozenArray<FrozenArray<Float32Array>> inputs,
+    //   FrozenArray<FrozenArray<Float32Array>> outputs,
+    //   object parameters);
+    process(
+      inputs: Float32Array[][],
+      outputs: Float32Array[][],
+      parameters: Record<string, Float32Array>
+    ): boolean {
       const output = outputs[0];
       for (let channel = 0; channel < output.length; ++channel) {
         const outputChannel = output[channel];
