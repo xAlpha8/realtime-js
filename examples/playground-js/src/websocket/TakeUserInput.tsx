@@ -15,7 +15,9 @@ export type TTakeUserInputProps = {
 export function TakeUserInput(props: TTakeUserInputProps) {
   const { onSubmit } = props;
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
-  const [functionURL, setFunctionURL] = React.useState("http://localhost:8080");
+  const [functionURL, setFunctionURL] = React.useState(
+    "http://localhost:8080/"
+  );
 
   function handleFormSubmit() {
     try {

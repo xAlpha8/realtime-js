@@ -67,14 +67,6 @@ export function Websocket(props: TWebsocketProps) {
       <div>Connection Status: {connectionStatus}</div>
 
       <button
-        onClick={connect}
-        disabled={
-          connectionStatus === "connected" || connectionStatus === "connecting"
-        }
-      >
-        Connect
-      </button>
-      <button
         onClick={handleDisconnect}
         disabled={
           connectionStatus === "disconnected" ||
