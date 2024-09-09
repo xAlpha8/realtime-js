@@ -105,7 +105,6 @@ export class RealtimeWebSocketMediaManager {
 
     console.log(`Base64 string size: ${base64EncodedAudio.length} bytes`);
 
-    // const arrayBuffer = Uint8Array.from(atob(base64EncodedAudio), c => c.charCodeAt(0)).buffer;
     const arrayBuffer = await toBytes(base64EncodedAudio);
     console.log(`ArrayBuffer size: ${arrayBuffer.byteLength} bytes`);
 
