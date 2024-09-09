@@ -24,6 +24,7 @@ export class RealtimeWebSocketMediaManager {
   hasRegisteredWAVEncoder: boolean;
   audioStartTime: number;
   audioEndTime: number;
+  audioWorkletNode: AudioWorkletNode | null
 
   constructor(config: TRealtimeWebSocketConfig) {
     this._config = config;
@@ -36,6 +37,7 @@ export class RealtimeWebSocketMediaManager {
     this.hasRegisteredWAVEncoder = false;
     this.audioStartTime = 0;
     this.audioEndTime = 0;
+    this.audioWorkletNode = null;
   }
 
   async setup() {
@@ -62,6 +64,8 @@ export class RealtimeWebSocketMediaManager {
         mimeType: "audio/wav",
       });
       this.audioContext = audioContext;
+      this.audioWorkletNode = new AudioWorkletNode(audioContext, "audio-processor")
+      this.audioWorkletNode.connect(audioContext.destination)
 
       this._logger?.info(this._logLabel, "Audio setup complete");
       return {
@@ -75,7 +79,7 @@ export class RealtimeWebSocketMediaManager {
     }
   }
 
-  async playAudio(base64: string): Promise<TResponse> {
+  async playAudio(base64EncodedAudio: string): Promise<TResponse> {
     if (!this.audioContext) {
       this._logger?.error(
         this._logLabel,
@@ -86,8 +90,12 @@ export class RealtimeWebSocketMediaManager {
       };
     }
 
+    this.audioWorkletNode?.port.postMessage({
+      type: "b64_audio",
+      audio: base64EncodedAudio
+    })
     const audioBuffer = Uint8Array.from(
-      [...atob(base64)].map((char) => char.charCodeAt(0))
+      [...atob(base64EncodedAudio)].map((char) => char.charCodeAt(0))
     ).buffer;
 
     if (this.isPlaying) {
