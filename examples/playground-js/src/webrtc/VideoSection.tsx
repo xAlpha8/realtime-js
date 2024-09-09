@@ -78,17 +78,22 @@ export function VideoSection(props: TVideoSectionProps) {
   });
 
   return (
-    <div className="flex-1 relative" ref={containerRef}>
+    <div className="flex-1 relative border rounded" ref={containerRef}>
       <RealtimeVideo track={remoteTrack} />
-      <div className="w-12 h-6 top-4 left-4 absolute">
+      <div
+        className={
+          "absolute " +
+          (remoteTrack?.stream.active ? "w-12 h-6 top-4 left-4" : "inset-3")
+        }
+      >
         <RealtimeAudioVisualizer track={remoteAudioTrack} />
       </div>
 
-      <div className="h-52 w-96 absolute bottom-4 right-4">
+      <div className="h-52 w-96 absolute bottom-4 right-4 rounded border bg-white">
         <div className="h-full w-full relative group">
           <RealtimeVideo track={localTrack} />
           <Button
-            className="absolute right-4 top-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute right-4 top-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
             variant="default"
             size="icon"
             onClick={toggleLocalAudioTrack}
@@ -99,7 +104,14 @@ export function VideoSection(props: TVideoSectionProps) {
               <MicOff className="h-4 w-4" />
             )}
           </Button>
-          <div className="absolute w-12 h-6 bottom-2 left-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div
+            className={
+              "absolute  transition-opacity " +
+              (localTrack?.stream.active
+                ? "w-12 h-6 opacity-0 group-hover:opacity-100 bottom-2 left-4"
+                : "inset-3")
+            }
+          >
             <RealtimeAudioVisualizer track={localAudioTrack} />
           </div>
         </div>
