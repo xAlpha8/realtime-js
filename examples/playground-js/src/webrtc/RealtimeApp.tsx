@@ -1,10 +1,7 @@
 import React from "react";
 import {
   useWebRTC,
-  RealtimeAudio,
-  RealtimeAudioVisualizer,
   RealtimeChat,
-  RealtimeVideo,
   TRealtimeConfig,
 } from "@adaptai/realtime-react";
 import { VideoSection } from "./VideoSection";
