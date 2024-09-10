@@ -3,10 +3,47 @@ import {
   MediaRecorder,
   register,
 } from "extendable-media-recorder";
+import { toBytes } from "fast-base64";
 import { connect as wavEncodedConnect } from "extendable-media-recorder-wav-encoder";
 
 import { ETrackOrigin, Track } from "../shared/Track";
 import { TLogger, TRealtimeWebSocketConfig, TResponse } from "../shared/@types";
+import { RealtimeWebsocketAudioProcessor } from "./RealtimeWebsocketAudioProcessor.worklet";
+
+/**
+ * The worklet code runs within the `AudioWorkletGlobalScope`, a special global execution context
+ * that operates on a separate Audio Worklet thread. This thread is shared by the worklet and other
+ * audio nodes, allowing efficient audio processing.
+ *
+ * The Audio Worklet thread is sandboxed, meaning the browser enforces a clear separation of the code
+ * running in this context. This separation is achieved by loading the worklet code as a module using
+ * the `addModule()` function, ensuring that it runs in the correct context.
+ *
+ * The `RealtimeWebsocketAudioProcessor` class is defined in a file called
+ * `RealtimeWebsocketAudioProcessor.worklet.ts`. However, we can't directly pass this code to the
+ * `addModule()` function because it expects a URL pointing to a JavaScript module, which maintains
+ * this separation.
+ *
+ * This function converts the `RealtimeWebsocketAudioProcessor` code into a string, performs necessary
+ * string replacements to make it compatible with `addModule()`, and then converts the string into a
+ * blob URL. This URL can be passed to the `addModule()` function for use in the Audio Worklet.
+ */
+function getRealtimeWebsocketAudioProcessorURL() {
+  const workletCode = `${RealtimeWebsocketAudioProcessor.toString()}
+    registerProcessor("audio-processor", RealtimeWebsocketAudioProcessor);
+  `
+    .replace(
+      "class extends AudioWorkletProcessor",
+      "var RealtimeWebsocketAudioProcessor = class extends AudioWorkletProcessor"
+    )
+    .replace(/__publicField.*/g, "");
+
+  // Create a Blob from the string
+  const blob = new Blob([workletCode], { type: "application/javascript" });
+
+  // Create an object URL for the blob
+  return URL.createObjectURL(blob);
+}
 
 export class RealtimeWebSocketMediaManager {
   private readonly _config: TRealtimeWebSocketConfig;
@@ -24,6 +61,7 @@ export class RealtimeWebSocketMediaManager {
   hasRegisteredWAVEncoder: boolean;
   audioStartTime: number;
   audioEndTime: number;
+  audioWorkletNode: AudioWorkletNode | null;
 
   constructor(config: TRealtimeWebSocketConfig) {
     this._config = config;
@@ -36,6 +74,7 @@ export class RealtimeWebSocketMediaManager {
     this.hasRegisteredWAVEncoder = false;
     this.audioStartTime = 0;
     this.audioEndTime = 0;
+    this.audioWorkletNode = null;
   }
 
   async setup() {
@@ -46,7 +85,7 @@ export class RealtimeWebSocketMediaManager {
         this.hasRegisteredWAVEncoder = true;
       }
 
-      const audioContext = new AudioContext();
+      const audioContext = new AudioContext({ sampleRate: 16000 });
       const stream = await navigator.mediaDevices.getUserMedia({
         /**
          * If this._config.audio is not defined, then we will use the default
@@ -62,6 +101,47 @@ export class RealtimeWebSocketMediaManager {
         mimeType: "audio/wav",
       });
       this.audioContext = audioContext;
+      this._logger?.info(this._logLabel, "Created Audio context");
+
+      /**
+       * Setup the AudioWorklet `audioProcessor`. It decodes the b64 encoded audio, and plays it.
+       */
+      const workletURL = getRealtimeWebsocketAudioProcessorURL();
+      await this.audioContext.audioWorklet.addModule(workletURL);
+      this._logger?.info(this._logLabel, "Added audio worklet module");
+      this.audioWorkletNode = new AudioWorkletNode(
+        audioContext,
+        "audio-processor"
+      );
+      this.audioWorkletNode.onprocessorerror = (ev: Event) => {
+        this._logger?.error(
+          this._logLabel,
+          "AudioWorklet processor error:",
+          ev
+        );
+      };
+
+      this.audioWorkletNode.port.onmessage = (event) => {
+        if (event.data === "agent_start_talking") {
+          console.log("agent_start_talking");
+          this.isPlaying = true;
+          this.audioStartTime = new Date().getTime() / 1000;
+          if (this.remoteAudioDestination) {
+            this.audioWorkletNode?.connect(this.remoteAudioDestination);
+          } else {
+            this.audioWorkletNode?.connect(this.audioContext!.destination);
+          }
+        } else if (event.data === "agent_stop_talking") {
+          console.log("agent_stop_talking");
+          this.isPlaying = false;
+          this.audioStartTime = 0;
+          if (this.remoteAudioDestination) {
+            this.audioWorkletNode?.disconnect(this.remoteAudioDestination);
+          } else {
+            this.audioWorkletNode?.disconnect(this.audioContext!.destination);
+          }
+        }
+      };
 
       this._logger?.info(this._logLabel, "Audio setup complete");
       return {
@@ -75,7 +155,7 @@ export class RealtimeWebSocketMediaManager {
     }
   }
 
-  async playAudio(base64: string): Promise<TResponse> {
+  async playAudio(wsPayload: { type: string; data?: string; idx?: number }) {
     if (!this.audioContext) {
       this._logger?.error(
         this._logLabel,
@@ -86,79 +166,27 @@ export class RealtimeWebSocketMediaManager {
       };
     }
 
-    const audioBuffer = Uint8Array.from(
-      [...atob(base64)].map((char) => char.charCodeAt(0))
-    ).buffer;
-
-    if (this.isPlaying) {
-      this.stopPlayingAudio();
-      // Waiting for one second so that it feels natural.
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (wsPayload.type == "audio") {
+      const arrayBuffer = await toBytes(wsPayload.data!);
+      this.audioWorkletNode?.port.postMessage({
+        type: "arrayBuffer",
+        buffer: arrayBuffer,
+        idx: wsPayload.idx,
+      });
+    } else if (wsPayload.type == "audio_end") {
+      this.audioWorkletNode?.port.postMessage({
+        type: "audio_end",
+      });
     }
-
-    try {
-      this.isPlaying = true;
-      this.audioContext.resume();
-      const buffer = await this.audioContext.decodeAudioData(audioBuffer);
-      this.source = this.audioContext.createBufferSource();
-      this.source.buffer = buffer;
-      if (this.remoteAudioDestination) {
-        this.source.connect(this.remoteAudioDestination);
-      } else {
-        this.source.connect(this.audioContext.destination);
-      }
-      this.source.start(0);
-      this._logger?.info(this._logLabel, "Playing audio");
-    } catch (error) {
-      this.isPlaying = false;
-      this._logger?.error(this._logLabel, "Error playing audio", error);
-
-      return {
-        error,
-      };
-    }
-
-    this.audioStartTime = new Date().getTime();
-
-    return new Promise((resolve, reject) => {
-      try {
-        if (this.source) {
-          this.source.onended = () => {
-            this.isPlaying = false;
-            this.audioEndTime = new Date().getTime();
-
-            if (
-              this.audioContext &&
-              this.source instanceof AudioBufferSourceNode
-            ) {
-              if (this.remoteAudioDestination) {
-                this.source.disconnect(this.remoteAudioDestination);
-              } else {
-                this.source.disconnect(this.audioContext.destination);
-              }
-            }
-
-            resolve({ ok: true });
-          };
-        }
-      } catch (error) {
-        this.isPlaying = false;
-        this._logger?.error(this._logLabel, "Error playing audio", error);
-        reject({ error });
-      }
-    });
   }
 
   stopPlayingAudio() {
-    if (!this.source) return;
+    if (!this.audioWorkletNode) return;
     try {
-      this.source.stop();
-      this.source.onended = null;
       this.audioEndTime = new Date().getTime();
     } catch (error) {
       this._logger?.error(this._logLabel, "Error stopping audio", error);
     }
-    this.source = null;
   }
 
   async disconnect() {
@@ -166,7 +194,6 @@ export class RealtimeWebSocketMediaManager {
     this.stream?.getTracks().forEach((track) => track.stop());
     this.remoteAudioDestination = null;
     this.track = null;
-    this.source = null;
   }
 
   getMetadata(): TResponse {
@@ -179,14 +206,17 @@ export class RealtimeWebSocketMediaManager {
       const audioSettings = this.stream.getTracks()[0].getSettings();
 
       this._logger?.info(this._logLabel, "Audio settings:", audioSettings);
-      const metadata = {
+      const inputAudioMetadata = {
         samplingRate: audioSettings.sampleRate || this.audioContext?.sampleRate,
         audioEncoding: "linear16",
       };
 
       return {
         ok: true,
-        data: metadata,
+        data: {
+          inputSampleRate: inputAudioMetadata.samplingRate,
+          outputSampleRate: this.audioContext?.sampleRate,
+        },
       };
     } catch (error) {
       this._logger?.error(

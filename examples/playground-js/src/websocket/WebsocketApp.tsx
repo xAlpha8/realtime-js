@@ -15,6 +15,7 @@ export function WebsocketApp() {
   );
   const { availableAudioDevices } = useAvailableMediaDevices();
   const [localAudioVolume, setLocalAudioVolume] = React.useState(0);
+  const recvAudioCount = React.useRef(0)
 
   const {
     connect,
@@ -41,7 +42,10 @@ export function WebsocketApp() {
 
       const msg = JSON.parse(event.data);
       if (msg.type === "audio") {
-        connection?.mediaManager.playAudio(msg.data);
+        recvAudioCount.current += 1
+        connection?.mediaManager.playAudio({ ...msg, idx: recvAudioCount.current });
+      } else if (msg.type == "audio_end") {
+        connection?.mediaManager.playAudio(msg);
       }
     },
     [connection]
