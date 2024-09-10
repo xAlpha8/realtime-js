@@ -3,15 +3,29 @@ import {
   MediaRecorder,
   register,
 } from "extendable-media-recorder";
+import { toBytes } from "fast-base64";
 import { connect as wavEncodedConnect } from "extendable-media-recorder-wav-encoder";
 
 import { ETrackOrigin, Track } from "../shared/Track";
 import { TLogger, TRealtimeWebSocketConfig, TResponse } from "../shared/@types";
-import { toBytes } from 'fast-base64';
-import { Buffer } from "buffer"
-import audioProcessorUrl from "./audioProcessor?url";
-console.log(audioProcessorUrl)
+import { RealtimeWebsocketAudioProcessor } from "./RealtimeWebsocketAudioProcessor.worklet";
 
+function getRealtimeWebsocketAudioProcessorURL() {
+  const workletCode = `${RealtimeWebsocketAudioProcessor.toString()}
+    registerProcessor("audio-processor", RealtimeWebsocketAudioProcessor);
+  `
+    .replace(
+      "class extends AudioWorkletProcessor",
+      "var RealtimeWebsocketAudioProcessor = class extends AudioWorkletProcessor"
+    )
+    .replace(/__publicField.*/g, "");
+
+  // Create a Blob from the string
+  const blob = new Blob([workletCode], { type: "application/javascript" });
+
+  // Create an object URL for the blob
+  return URL.createObjectURL(blob);
+}
 
 export class RealtimeWebSocketMediaManager {
   private readonly _config: TRealtimeWebSocketConfig;
@@ -29,7 +43,7 @@ export class RealtimeWebSocketMediaManager {
   hasRegisteredWAVEncoder: boolean;
   audioStartTime: number;
   audioEndTime: number;
-  audioWorkletNode: AudioWorkletNode | null
+  audioWorkletNode: AudioWorkletNode | null;
 
   constructor(config: TRealtimeWebSocketConfig) {
     this._config = config;
@@ -69,36 +83,44 @@ export class RealtimeWebSocketMediaManager {
         mimeType: "audio/wav",
       });
       this.audioContext = audioContext;
-      this._logger?.info(this._logLabel, "Created Audio context")
+      this._logger?.info(this._logLabel, "Created Audio context");
 
       /**
        * Setup the AudioWorklet `audioProcessor`. It decodes the b64 encoded audio, and plays it.
        */
-      await this.audioContext.audioWorklet.addModule(audioProcessorUrl)
-      this._logger?.info(this._logLabel, "Added audio worklet module")
-      this.audioWorkletNode = new AudioWorkletNode(audioContext, "audio-processor")
+      const workletURL = getRealtimeWebsocketAudioProcessorURL();
+      await this.audioContext.audioWorklet.addModule(workletURL);
+      this._logger?.info(this._logLabel, "Added audio worklet module");
+      this.audioWorkletNode = new AudioWorkletNode(
+        audioContext,
+        "audio-processor"
+      );
       this.audioWorkletNode.onprocessorerror = (ev: Event) => {
-        this._logger?.error(this._logLabel, 'AudioWorklet processor error:', ev);
-      }
+        this._logger?.error(
+          this._logLabel,
+          "AudioWorklet processor error:",
+          ev
+        );
+      };
 
       this.audioWorkletNode.port.onmessage = (event) => {
         if (event.data === "agent_start_talking") {
           console.log("agent_start_talking");
-          this.isPlaying = true
+          this.isPlaying = true;
           this.audioStartTime = new Date().getTime() / 1000;
           if (this.remoteAudioDestination) {
-            this.audioWorkletNode?.connect(this.remoteAudioDestination)
+            this.audioWorkletNode?.connect(this.remoteAudioDestination);
           } else {
-            this.audioWorkletNode?.connect(this.audioContext!.destination)
+            this.audioWorkletNode?.connect(this.audioContext!.destination);
           }
         } else if (event.data === "agent_stop_talking") {
           console.log("agent_stop_talking");
-          this.isPlaying = false
+          this.isPlaying = false;
           this.audioStartTime = 0;
           if (this.remoteAudioDestination) {
-            this.audioWorkletNode?.disconnect(this.remoteAudioDestination)
+            this.audioWorkletNode?.disconnect(this.remoteAudioDestination);
           } else {
-            this.audioWorkletNode?.disconnect(this.audioContext!.destination)
+            this.audioWorkletNode?.disconnect(this.audioContext!.destination);
           }
         }
       };
@@ -131,12 +153,12 @@ export class RealtimeWebSocketMediaManager {
       this.audioWorkletNode?.port.postMessage({
         type: "arrayBuffer",
         buffer: arrayBuffer,
-        idx: wsPayload.idx
-      })
+        idx: wsPayload.idx,
+      });
     } else if (wsPayload.type == "audio_end") {
       this.audioWorkletNode?.port.postMessage({
         type: "audio_end",
-      })
+      });
     }
   }
 
@@ -175,8 +197,8 @@ export class RealtimeWebSocketMediaManager {
         ok: true,
         data: {
           inputSampleRate: inputAudioMetadata.samplingRate,
-          outputSampleRate: this.audioContext?.sampleRate
-        }
+          outputSampleRate: this.audioContext?.sampleRate,
+        },
       };
     } catch (error) {
       this._logger?.error(
