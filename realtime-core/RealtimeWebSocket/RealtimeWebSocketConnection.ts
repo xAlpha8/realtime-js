@@ -1,7 +1,7 @@
 import { IMediaRecorderEventMap } from "extendable-media-recorder";
 import { WebSocketDataChannel } from "../DataChannel";
 import { TLogger, TRealtimeWebSocketConfig, TResponse } from "../shared/@types";
-import { fetchWithRetry } from "../utils";
+import { fetchWithRetry, isMessageEvent, stringify } from "../utils";
 import { RealtimeWebSocketMediaManager } from "./RealtimeWebSocketMediaManager";
 import { blobToBase64 } from "../utils";
 
@@ -23,6 +23,7 @@ export class RealtimeWebSocketConnection {
   private readonly _logLabel = "RealtimeWebSocketConnection";
   private readonly _logger: TLogger | undefined;
   private _isConnecting: boolean = false;
+  private _audioRecvCount: number = 0;
 
   socket: WebSocket | null;
   dataChannel: WebSocketDataChannel | null;
@@ -33,11 +34,22 @@ export class RealtimeWebSocketConnection {
   constructor(config: TRealtimeWebSocketConfig) {
     this._config = config;
     this._logger = config.logger;
+    this._audioRecvCount = 0;
+
     this.dataChannel = null;
     this.socket = null;
     this.mediaManager = new RealtimeWebSocketMediaManager(config);
 
     this._onRecordingAvailable = this._onRecordingAvailable.bind(this);
+    this._processAudioMessage = this._processAudioMessage.bind(this);
+  }
+
+  private _send(payload: { type: string } & { [k in string]: unknown }) {
+    if (this.socket?.readyState !== WebSocket.OPEN) {
+      throw new Error("WebSocket is not open");
+    }
+
+    this.socket.send(stringify(payload));
   }
 
   private async _getOfferURL(
@@ -106,7 +118,7 @@ export class RealtimeWebSocketConnection {
     }
 
     try {
-      this.dataChannel!.send({
+      this._send({
         type: "audio_metadata",
         ...metadataResponse.data,
       });
@@ -137,7 +149,28 @@ export class RealtimeWebSocketConnection {
       return;
     }
 
-    this.dataChannel?.send({ type: "audio", data: base64 });
+    this._send({ type: "audio", data: base64 });
+  }
+
+  private async _processAudioMessage(event: unknown) {
+    if (!isMessageEvent(event)) {
+      return;
+    }
+
+    const message = JSON.parse(event.data);
+
+    this._logger?.info(this._logLabel, "Received message", message.type);
+
+    if (message.type.startsWith("audio")) {
+      if (message.type === "audio") {
+        this._audioRecvCount += 1;
+      }
+
+      this.mediaManager.processAudioPayload({
+        ...message,
+        idx: this._audioRecvCount,
+      });
+    }
   }
 
   async connect(
@@ -248,6 +281,7 @@ export class RealtimeWebSocketConnection {
         "dataavailable",
         this._onRecordingAvailable
       );
+      this.socket.addEventListener("message", this._processAudioMessage);
     } catch (error) {
       this._logger?.error(this._logLabel, "Error starting recorder", error);
       return {
@@ -280,11 +314,21 @@ export class RealtimeWebSocketConnection {
         );
       }
 
+      this.dataChannel?.disconnect();
+      this.socket?.removeEventListener("message", this._processAudioMessage);
+
       // Resetting Sockets
-      this.dataChannel?.send({ type: "websocket_stop" });
-      this.socket?.close();
+      try {
+        this._send({ type: "websocket_stop" });
+        this.socket?.close();
+      } catch (error) {
+        this._logger?.warn(this._logLabel, error);
+      }
+
+      this.mediaManager.disconnect();
 
       this._isConnecting = false;
+      this._audioRecvCount = 0;
       this._logger?.info(this._logLabel, "Disconnected");
 
       return {
