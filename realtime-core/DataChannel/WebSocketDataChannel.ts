@@ -1,8 +1,8 @@
 import { DataChannel } from "./DataChannel";
 import { isMessageEvent, stringify } from "../utils";
 
-export class WebSocketDataChannel implements DataChannel<WebSocket> {
-  dataChannel: WebSocket;
+export class WebSocketDataChannel implements DataChannel<null> {
+  dataChannel = null;
   socket: WebSocket;
   eventListeners: {
     open: Array<EventListener>;
@@ -12,7 +12,6 @@ export class WebSocketDataChannel implements DataChannel<WebSocket> {
 
   constructor(socket: WebSocket) {
     this.socket = socket;
-    this.dataChannel = socket;
     this.eventListeners = {
       open: [],
       close: [],
@@ -73,7 +72,6 @@ export class WebSocketDataChannel implements DataChannel<WebSocket> {
       throw new Error("WebSocket is not open");
     }
 
-    console.log("Messaage", payload);
     this.socket.send(stringify(payload));
   }
 
