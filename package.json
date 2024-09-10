@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@sentry/vite-plugin": "^2.21.1",
+    "@types/audioworklet": "^0.0.60",
     "@types/node": "^20.12.12",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
@@ -40,14 +41,15 @@
     "@radix-ui/react-select": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.0",
     "@sentry/react": "^8.17.0",
-    "@xstate/react": "^4.1.1",
+    "@xstate/react": "4.1.1",
     "audiomotion-analyzer": "^4.5.0",
     "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "extendable-media-recorder": "^9.2.11",
     "extendable-media-recorder-wav-encoder": "^7.0.115",
+    "fast-base64": "^0.1.8",
     "tailwind-merge": "^2.5.2",
-    "xstate": "^5.17.4"
+    "xstate": "5.17.4"
   }
 }
