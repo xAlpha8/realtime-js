@@ -14,7 +14,7 @@ export type TWebsocketProps = {
 
 export function Websocket(props: TWebsocketProps) {
   const { config, onDisconnect } = props;
-
+  const recvAudioCount = React.useRef(0);
   const [localAudioVolume, setLocalAudioVolume] = React.useState(0);
 
   const {
@@ -40,7 +40,13 @@ export function Websocket(props: TWebsocketProps) {
 
       const msg = JSON.parse(event.data);
       if (msg.type === "audio") {
-        connection?.mediaManager.playAudio(msg.data);
+        recvAudioCount.current += 1;
+        connection?.mediaManager.playAudio({
+          ...msg,
+          idx: recvAudioCount.current,
+        });
+      } else if (msg.type == "audio_end") {
+        connection?.mediaManager.playAudio(msg);
       }
     },
     [connection]
