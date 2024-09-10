@@ -89,9 +89,11 @@ export function VideoSection(props: TVideoSectionProps) {
       >
         Remote
       </div>
-      <div className="absolute top-2 left-4">
-        <RealtimeConnectionStatus connectionStatus="connected" />
-      </div>
+      {!remoteTrack?.stream.active && (
+        <div className="absolute top-2 left-4">
+          <RealtimeConnectionStatus connectionStatus="connected" />
+        </div>
+      )}
       <div
         className={
           "absolute " +
