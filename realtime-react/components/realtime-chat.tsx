@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 
 import { DataChannel, isMessageEvent } from "../../realtime-core";
+import { useRealtimeToast } from "../hooks";
 
 export type RealtimeChatProps = {
   dataChannel: DataChannel<unknown>;
 };
 
 export function RealtimeChat(props: RealtimeChatProps) {
+  const { toast } = useRealtimeToast();
   const { dataChannel } = props;
   const chatRef = useRef<HTMLAudioElement>(null);
   const [messages, setMessages] = useState<
@@ -69,9 +71,13 @@ export function RealtimeChat(props: RealtimeChatProps) {
         const message = JSON.parse(evt.data);
 
         if (message.render) {
-          console.log(
-            <div dangerouslySetInnerHTML={{ __html: message.render }} />
-          );
+          toast({
+            title: "New Message",
+            description: (
+              <div dangerouslySetInnerHTML={{ __html: message.render }} />
+            ),
+          });
+          console.log();
         }
 
         updateMessage({ ...message, type: "bot" });

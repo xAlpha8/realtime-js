@@ -3,6 +3,7 @@ import {
   useWebRTC,
   RealtimeChat,
   TRealtimeConfig,
+  useRealtimeToast,
 } from "@adaptai/realtime-react";
 import { VideoSection } from "./VideoSection";
 import { Loader2 } from "lucide-react";
@@ -15,6 +16,8 @@ export type TRealtimeAppProps = {
 
 export function RealtimeApp(props: TRealtimeAppProps) {
   const { config, onDisconnect } = props;
+  const { toast } = useRealtimeToast();
+
   const {
     connectionStatus,
     connect,
@@ -37,7 +40,11 @@ export function RealtimeApp(props: TRealtimeAppProps) {
     }
 
     if (connectionStatus === "Failed") {
-      console.log("Something went wrong, please try again");
+      toast({
+        title: "Connection Status",
+        description: "Failed to connect.",
+        variant: "destructive",
+      });
     }
   }, [connectionStatus, connect, onDisconnect, config]);
 
