@@ -47,7 +47,7 @@ function App() {
     offerUrl: "http://0.0.0.0:8080/offer",
     isDataEnabled: true,
     dataParameters: { ordered: true },
-    isVideoEnabled: true,
+    isVideoEnabled: false,
     videoInput: "",
     videoCodec: "default",
     videoResolution: "256x256",

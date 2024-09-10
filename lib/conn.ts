@@ -305,7 +305,9 @@ class RealtimeConnection {
     }
 
     if (this._config.isVideoEnabled) {
-      const videoConstraints: boolean | MediaTrackConstraints = {};
+      const videoConstraints: boolean | MediaTrackConstraints = {
+        frameRate: 5,
+      };
 
       const device = this._config.videoInput;
       if (device) {
@@ -322,6 +324,8 @@ class RealtimeConnection {
       constraints.video = Object.keys(videoConstraints).length
         ? videoConstraints
         : true;
+    } else {
+      pc.addTransceiver("video", { direction: "recvonly" });
     }
 
     if (this._config.isScreenShareEnabled) {
