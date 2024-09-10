@@ -45,6 +45,23 @@ function getRealtimeWebsocketAudioProcessorURL() {
   return URL.createObjectURL(blob);
 }
 
+export type TRealtimeWebsocketAudioProcessPayload = {
+  /**
+   * Message type.
+   * `audio`: To play audio.
+   * `audio_end`: To stop playing audio.
+   */
+  type: string;
+  /**
+   * Audio data in base64 format.
+   */
+  data?: string;
+  /**
+   * Index.
+   */
+  idx?: number;
+};
+
 export class RealtimeWebSocketMediaManager {
   private readonly _config: TRealtimeWebSocketConfig;
   private readonly _logLabel = "RealtimeWebSocketMediaManager";
@@ -58,7 +75,6 @@ export class RealtimeWebSocketMediaManager {
   wavEncoderPort?: MessagePort | null;
   remoteAudioDestination?: MediaStreamAudioDestinationNode | null;
   remoteAudioTrack?: Track | null;
-  hasRegisteredWAVEncoder: boolean;
   audioStartTime: number;
   audioEndTime: number;
   audioWorkletNode: AudioWorkletNode | null;
@@ -71,18 +87,42 @@ export class RealtimeWebSocketMediaManager {
     this.audioContext = null;
     this.isPlaying = false;
     this._logger = config.logger;
-    this.hasRegisteredWAVEncoder = false;
     this.audioStartTime = 0;
     this.audioEndTime = 0;
     this.audioWorkletNode = null;
   }
 
+  private async _playAudio(wsPayload: TRealtimeWebsocketAudioProcessPayload) {
+    if (!this.audioContext) {
+      this._logger?.error(
+        this._logLabel,
+        "Not audio context. It looks like connect() was not successful."
+      );
+      return {
+        error: "Not audio context. It looks like connect() was not successful.",
+      };
+    }
+
+    const arrayBuffer = await toBytes(wsPayload.data!);
+    this.audioWorkletNode?.port.postMessage({
+      type: "arrayBuffer",
+      buffer: arrayBuffer,
+      idx: wsPayload.idx,
+    });
+  }
+
+  private _stopPlayingAudio() {
+    if (!this.audioWorkletNode) return;
+    this.audioWorkletNode?.port.postMessage({
+      type: "audio_end",
+    });
+  }
+
   async setup() {
     try {
-      if (!this.hasRegisteredWAVEncoder) {
+      if (!MediaRecorder.isTypeSupported("audio/wav")) {
         this.wavEncoderPort = await wavEncodedConnect();
         await register(this.wavEncoderPort);
-        this.hasRegisteredWAVEncoder = true;
       }
 
       const audioContext = new AudioContext({ sampleRate: 16000 });
@@ -122,24 +162,27 @@ export class RealtimeWebSocketMediaManager {
       };
 
       this.audioWorkletNode.port.onmessage = (event) => {
-        if (event.data === "agent_start_talking") {
-          console.log("agent_start_talking");
-          this.isPlaying = true;
-          this.audioStartTime = new Date().getTime() / 1000;
-          if (this.remoteAudioDestination) {
+        if (!this.remoteAudioDestination) return;
+
+        switch (event.data) {
+          case "agent_start_talking":
+            this._logger?.info(this._logLabel, "Received agent_start_talking");
+            this.isPlaying = true;
+            this.audioStartTime = new Date().getTime() / 1000;
             this.audioWorkletNode?.connect(this.remoteAudioDestination);
-          } else {
-            this.audioWorkletNode?.connect(this.audioContext!.destination);
-          }
-        } else if (event.data === "agent_stop_talking") {
-          console.log("agent_stop_talking");
-          this.isPlaying = false;
-          this.audioStartTime = 0;
-          if (this.remoteAudioDestination) {
+            break;
+          case "agent_stop_talking":
+            this._logger?.info(this._logLabel, "Received agent_stop_talking");
+            this.isPlaying = false;
+            this.audioStartTime = 0;
             this.audioWorkletNode?.disconnect(this.remoteAudioDestination);
-          } else {
-            this.audioWorkletNode?.disconnect(this.audioContext!.destination);
-          }
+            break;
+          default:
+            this._logger?.warn(
+              this._logLabel,
+              "Unknown event.data received",
+              event.data
+            );
         }
       };
 
@@ -155,45 +198,36 @@ export class RealtimeWebSocketMediaManager {
     }
   }
 
-  async playAudio(wsPayload: { type: string; data?: string; idx?: number }) {
-    if (!this.audioContext) {
-      this._logger?.error(
-        this._logLabel,
-        "Not audio context. It looks like connect() was not successful."
-      );
-      return {
-        error: "Not audio context. It looks like connect() was not successful.",
-      };
+  processAudioPayload(payload: TRealtimeWebsocketAudioProcessPayload) {
+    if (typeof payload !== "object" || !payload || !payload.type) {
+      return;
     }
 
-    if (wsPayload.type == "audio") {
-      const arrayBuffer = await toBytes(wsPayload.data!);
-      this.audioWorkletNode?.port.postMessage({
-        type: "arrayBuffer",
-        buffer: arrayBuffer,
-        idx: wsPayload.idx,
-      });
-    } else if (wsPayload.type == "audio_end") {
-      this.audioWorkletNode?.port.postMessage({
-        type: "audio_end",
-      });
-    }
-  }
-
-  stopPlayingAudio() {
-    if (!this.audioWorkletNode) return;
-    try {
-      this.audioEndTime = new Date().getTime();
-    } catch (error) {
-      this._logger?.error(this._logLabel, "Error stopping audio", error);
+    switch (payload.type) {
+      case "audio":
+        this._playAudio(payload);
+        break;
+      case "audio_end":
+        this._stopPlayingAudio();
+        break;
+      default:
+        this._logger?.warn(this._logLabel, "Unknown payload type", payload);
     }
   }
 
   async disconnect() {
     this.recorder?.stop();
     this.stream?.getTracks().forEach((track) => track.stop());
+    this._stopPlayingAudio();
     this.remoteAudioDestination = null;
     this.track = null;
+
+    if (this.audioWorkletNode) {
+      this.audioWorkletNode.port.onmessage = null;
+    }
+    this.audioContext?.close();
+    this.audioContext = null;
+    this.audioWorkletNode = null;
   }
 
   getMetadata(): TResponse {
