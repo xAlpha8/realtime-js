@@ -9,6 +9,8 @@ import {
   RealtimeVideoInput,
   RealtimeFormButton,
 } from "@adaptai/realtime-react";
+import { Link } from "react-router-dom";
+import { Button } from "../components/button";
 
 export type TTakeUserInputProps = {
   onSubmit: (config: TRealtimeConfig) => void;
@@ -16,7 +18,6 @@ export type TTakeUserInputProps = {
 
 export function TakeUserInput(props: TTakeUserInputProps) {
   const { onSubmit } = props;
-  const [shareScreen, setShareScreen] = React.useState("");
   const [audioDeviceId, setAudioDeviceId] = React.useState("");
   const [videoDeviceId, setVideoDeviceId] = React.useState("");
   const [functionURL, setFunctionURL] = React.useState("http://localhost:8080");
@@ -27,7 +28,6 @@ export function TakeUserInput(props: TTakeUserInputProps) {
         functionURL,
         audioDeviceId,
         videoDeviceId,
-        screenConstraints: shareScreen === "yes" ? {} : undefined,
         logger: ConsoleLogger.getLogger(),
       });
       onSubmit(config);
@@ -38,7 +38,12 @@ export function TakeUserInput(props: TTakeUserInputProps) {
 
   return (
     <RealtimeForm>
-      <h3 className="mb-4 font-bold text-lg">WebRTC Example</h3>
+      <div className="flex justify-between items-center mb-4">
+        <span className="font-bold text-lg">WebRTC Example</span>
+        <Link to="/">
+          <Button variant="outline">Go Back</Button>
+        </Link>
+      </div>
       <RealtimeFunctionURLInput
         onChange={(e) => setFunctionURL(e.currentTarget.value)}
         value={functionURL}

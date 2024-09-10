@@ -7,6 +7,8 @@ import {
   RealtimeAudioInput,
   RealtimeFormButton,
 } from "@adaptai/realtime-react";
+import { Link } from "react-router-dom";
+import { Button } from "../components/button";
 
 export type TTakeUserInputProps = {
   onSubmit: (config: TRealtimeWebSocketConfig) => void;
@@ -38,7 +40,12 @@ export function TakeUserInput(props: TTakeUserInputProps) {
 
   return (
     <RealtimeForm>
-      <h3 className="mb-4 font-bold text-lg">Websocket Example</h3>
+      <div className="flex justify-between items-center mb-4">
+        <span className="font-bold text-lg">Websocket Example</span>
+        <Link to="/">
+          <Button variant="outline">Go Back</Button>
+        </Link>
+      </div>
       <RealtimeFunctionURLInput
         onChange={(e) => setFunctionURL(e.currentTarget.value)}
         value={functionURL}

@@ -7,3 +7,4 @@ export * from "./realtime-video-input";
 export * from "./realtime-form";
 export * from "./realtime-function-url-input";
 export * from "./realtime-share-screen-input";
+export * from "./realtime-connection-status";

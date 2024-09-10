@@ -2,29 +2,20 @@ import {
   RealtimeAudio,
   RealtimeAudioVisualizer,
   RealtimeConnectionStatus,
-  RealtimeVideo,
   Track,
 } from "@adaptai/realtime-react";
 import React from "react";
 import { Mic, MicOff, PhoneOff } from "lucide-react";
 import { Button } from "../components/button";
 
-export type TVideoSectionProps = {
-  remoteTrack: Track | null;
-  localTrack: Track | null;
+export type TViewProps = {
   remoteAudioTrack: Track | null;
   localAudioTrack: Track | null;
   onCallEndClick: () => void;
 };
 
-export function VideoSection(props: TVideoSectionProps) {
-  const {
-    remoteTrack,
-    localTrack,
-    localAudioTrack,
-    remoteAudioTrack,
-    onCallEndClick,
-  } = props;
+export function View(props: TViewProps) {
+  const { localAudioTrack, remoteAudioTrack, onCallEndClick } = props;
 
   const [isLocalAudioTrackEnabled, setIsLocalAudioTrackEnabled] =
     React.useState(true);
@@ -80,11 +71,9 @@ export function VideoSection(props: TVideoSectionProps) {
 
   return (
     <div className="flex-1 relative border rounded" ref={containerRef}>
-      <RealtimeVideo track={remoteTrack} />
       <div
         className={
-          "uppercase absolute top-2 right-4 font-bold text-sm z-10 " +
-          (remoteTrack?.stream.active ? "text-muted" : "text-gray-700")
+          "uppercase absolute top-2 right-4 font-bold text-sm z-10 text-gray-700"
         }
       >
         Remote
@@ -92,12 +81,7 @@ export function VideoSection(props: TVideoSectionProps) {
       <div className="absolute top-2 left-4">
         <RealtimeConnectionStatus connectionStatus="connected" />
       </div>
-      <div
-        className={
-          "absolute " +
-          (remoteTrack?.stream.active ? "w-24 h-12 top-4 left-4" : "inset-3")
-        }
-      >
+      <div className={"absolute inset-3"}>
         <RealtimeAudioVisualizer track={remoteAudioTrack} />
       </div>
 
@@ -105,13 +89,12 @@ export function VideoSection(props: TVideoSectionProps) {
         <div className="h-full w-full relative group">
           <div
             className={
-              "uppercase absolute top-1 left-2 font-bold text-sm z-10 " +
-              (localTrack?.stream.active ? "text-muted" : "text-gray-700")
+              "uppercase absolute top-1 left-2 font-bold text-sm z-10 text-gray-700"
             }
           >
             Local
           </div>
-          <RealtimeVideo track={localTrack} />
+
           <Button
             className="absolute right-4 top-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
             variant="default"
@@ -124,14 +107,7 @@ export function VideoSection(props: TVideoSectionProps) {
               <MicOff className="h-4 w-4" />
             )}
           </Button>
-          <div
-            className={
-              "absolute  transition-opacity " +
-              (localTrack?.stream.active
-                ? "w-12 h-6 opacity-0 group-hover:opacity-100 bottom-2 left-4"
-                : "inset-3")
-            }
-          >
+          <div className={"absolute  transition-opacity inset-3"}>
             <RealtimeAudioVisualizer track={localAudioTrack} />
           </div>
         </div>

@@ -34,6 +34,7 @@ export function RealtimeChat(props: RealtimeChatProps) {
 
     dataChannel.send({
       content: msg,
+      text: msg,
       role: "user",
     });
   }
@@ -67,10 +68,9 @@ export function RealtimeChat(props: RealtimeChatProps) {
       try {
         const message = JSON.parse(evt.data);
 
-        if (message.widget) {
-          // This is a widget.
+        if (message.render) {
           console.log(
-            <div dangerouslySetInnerHTML={{ __html: message.widget }} />
+            <div dangerouslySetInnerHTML={{ __html: message.render }} />
           );
         }
 

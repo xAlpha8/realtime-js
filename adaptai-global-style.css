@@ -72,7 +72,7 @@
 }
 
 .container {
-  @apply max-w-[2000px];
+  @apply max-w-[1500px];
 }
 
 @media screen and (max-width: 600px) {

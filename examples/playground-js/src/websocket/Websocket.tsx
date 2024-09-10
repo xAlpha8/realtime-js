@@ -1,11 +1,12 @@
 import React from "react";
 import {
   useWebSocket,
-  isMessageEvent,
-  ConsoleLogger,
-  RealtimeAudio,
   TRealtimeWebSocketConfig,
+  RealtimeChat,
 } from "@adaptai/realtime-react";
+import { Loader2 } from "lucide-react";
+import { Button } from "../components/button";
+import { View } from "./View";
 
 export type TWebsocketProps = {
   onDisconnect: () => void;
@@ -14,15 +15,13 @@ export type TWebsocketProps = {
 
 export function Websocket(props: TWebsocketProps) {
   const { config, onDisconnect } = props;
-  const recvAudioCount = React.useRef(0);
-  const [localAudioVolume, setLocalAudioVolume] = React.useState(0);
 
   const {
     connect,
     disconnect,
     getRemoteAudioTrack,
     getLocalAudioTrack,
-    connection,
+    dataChannel,
     connectionStatus,
   } = useWebSocket({
     config,
@@ -33,70 +32,53 @@ export function Websocket(props: TWebsocketProps) {
     onDisconnect();
   }, [disconnect, onDisconnect]);
 
-  const onMessage = React.useCallback(
-    (event: unknown) => {
-      if (!isMessageEvent(event)) return;
-      ConsoleLogger.getLogger().info("Messages", "Received Message.");
-
-      const msg = JSON.parse(event.data);
-      if (msg.type === "audio") {
-        recvAudioCount.current += 1;
-        connection?.mediaManager.playAudio({
-          ...msg,
-          idx: recvAudioCount.current,
-        });
-      } else if (msg.type == "audio_end") {
-        connection?.mediaManager.playAudio(msg);
-      }
-    },
-    [connection]
-  );
-
-  React.useEffect(() => {
-    if (connection && connectionStatus === "connected") {
-      connection.dataChannel?.addEventListener("message", onMessage);
-    }
-
-    return () => {
-      if (connection) {
-        connection.dataChannel?.removeEventListener("message", onMessage);
-      }
-    };
-  }, [connection, onMessage, connectionStatus]);
-
   React.useEffect(() => {
     connect();
+
+    return () => {
+      disconnect();
+    };
   }, []);
 
+  if (connectionStatus === "connecting")
+    return (
+      <div className="h-full flex flex-1 justify-center items-center">
+        <Loader2 size={48} className="animate-spin" />
+      </div>
+    );
+
+  if (connectionStatus === "failed") {
+    return (
+      <div className="h-full flex flex-1 justify-center items-center">
+        <div className="flex items-center space-y-4 flex-col">
+          <h2 className="text-3xl font-light">
+            Failed to connect. Please try again.
+          </h2>
+          <Button
+            className="inline-flex max-w-24"
+            onClick={() => window.location.reload()}
+          >
+            Refresh
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <div>Connection Status: {connectionStatus}</div>
-
-      <button
-        onClick={handleDisconnect}
-        disabled={
-          connectionStatus === "disconnected" ||
-          connectionStatus === "failed" ||
-          connectionStatus === "new"
-        }
-      >
-        Disconnect
-      </button>
-
-      <div>
-        <span>Remote Audio controller</span>
-        <RealtimeAudio track={getRemoteAudioTrack()} />
-      </div>
-
-      <div>
-        <span>Local audio controller</span>
-        <input
-          placeholder="Local audio volume"
-          value={localAudioVolume}
-          onChange={(e) => setLocalAudioVolume(+e.target.value)}
+    <div className="h-full flex flex-1">
+      <div className="flex-1 flex">
+        <View
+          onCallEndClick={handleDisconnect}
+          localAudioTrack={getLocalAudioTrack()}
+          remoteAudioTrack={getRemoteAudioTrack()}
         />
-        <RealtimeAudio track={getLocalAudioTrack()} volume={localAudioVolume} />
       </div>
+      {dataChannel && (
+        <div className="w-[350px] px-4">
+          <RealtimeChat dataChannel={dataChannel} />
+        </div>
+      )}
     </div>
   );
 }
