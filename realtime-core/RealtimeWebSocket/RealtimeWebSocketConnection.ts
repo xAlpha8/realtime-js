@@ -104,10 +104,11 @@ export class RealtimeWebSocketConnection {
         error: metadataResponse.error,
       };
     }
+
     try {
       this.dataChannel!.send({
         type: "audio_metadata",
-        payload: metadataResponse.data,
+        ...metadataResponse.data,
       });
 
       return {
