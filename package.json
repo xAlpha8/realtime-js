@@ -36,12 +36,12 @@
   },
   "dependencies": {
     "@sentry/react": "^8.17.0",
-    "@xstate/react": "^4.1.1",
+    "@xstate/react": "4.1.1",
     "audiomotion-analyzer": "^4.5.0",
     "change-case": "^5.4.4",
     "extendable-media-recorder": "^9.2.11",
     "extendable-media-recorder-wav-encoder": "^7.0.115",
     "fast-base64": "^0.1.8",
-    "xstate": "^5.17.4"
+    "xstate": "5.17.4"
   }
 }
