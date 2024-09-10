@@ -10,6 +10,24 @@ import { ETrackOrigin, Track } from "../shared/Track";
 import { TLogger, TRealtimeWebSocketConfig, TResponse } from "../shared/@types";
 import { RealtimeWebsocketAudioProcessor } from "./RealtimeWebsocketAudioProcessor.worklet";
 
+/**
+ * The worklet code runs within the `AudioWorkletGlobalScope`, a special global execution context
+ * that operates on a separate Audio Worklet thread. This thread is shared by the worklet and other
+ * audio nodes, allowing efficient audio processing.
+ *
+ * The Audio Worklet thread is sandboxed, meaning the browser enforces a clear separation of the code
+ * running in this context. This separation is achieved by loading the worklet code as a module using
+ * the `addModule()` function, ensuring that it runs in the correct context.
+ *
+ * The `RealtimeWebsocketAudioProcessor` class is defined in a file called
+ * `RealtimeWebsocketAudioProcessor.worklet.ts`. However, we can't directly pass this code to the
+ * `addModule()` function because it expects a URL pointing to a JavaScript module, which maintains
+ * this separation.
+ *
+ * This function converts the `RealtimeWebsocketAudioProcessor` code into a string, performs necessary
+ * string replacements to make it compatible with `addModule()`, and then converts the string into a
+ * blob URL. This URL can be passed to the `addModule()` function for use in the Audio Worklet.
+ */
 function getRealtimeWebsocketAudioProcessorURL() {
   const workletCode = `${RealtimeWebsocketAudioProcessor.toString()}
     registerProcessor("audio-processor", RealtimeWebsocketAudioProcessor);
