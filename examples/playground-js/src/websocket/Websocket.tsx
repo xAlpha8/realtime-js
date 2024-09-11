@@ -75,7 +75,7 @@ export function Websocket(props: TWebsocketProps) {
         />
       </div>
       {dataChannel && (
-        <div className="w-[350px] px-4">
+        <div className="w-[350px] px-4 hidden md:block">
           <RealtimeChat dataChannel={dataChannel} />
         </div>
       )}
