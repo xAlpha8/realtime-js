@@ -50,7 +50,7 @@ function App() {
     isVideoEnabled: false,
     videoInput: "",
     videoCodec: "default",
-    videoResolution: "256x256",
+    videoResolution: "512x512",
     videoTransform: "none",
     isScreenShareEnabled: false,
     isAudioEnabled: true,
@@ -81,19 +81,6 @@ function App() {
               onChange={(e) => setAudioInput(e.target.value)}
             >
               {audioOptions.map((option, index) => (
-                <option key={index} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <h2>Video Options:</h2>
-            <select
-              value={videoInput}
-              onChange={(e) => setVideoInput(e.target.value)}
-            >
-              {videoOptions.map((option, index) => (
                 <option key={index} value={option.value}>
                   {option.label}
                 </option>
