@@ -16,20 +16,32 @@ export function RealtimeAudioVisualizer(props: RealtimeAudioVisualizerProps) {
       audioMotionRef.current = new AudioMotionAnalyzer(
         audioVisualizerRef.current!,
         {
-          mode: 10,
+          mode: 5,
+          alphaBars: false,
+          ansiBands: false,
+          barSpace: 1,
           channelLayout: "single",
-          fsElement: audioVisualizerRef.current!,
+          colorMode: "bar-level",
           frequencyScale: "bark",
-          colorMode: "gradient",
-          gradientLeft: "rainbow",
-          gradientRight: "rainbow",
-          linearAmplitude: false,
-          linearBoost: 1.8,
-          lineWidth: 1.5,
+          gradient: "prism",
+          ledBars: false,
+          linearAmplitude: true,
+          linearBoost: 1.5,
+          lumiBars: false,
+          maxFreq: 16000,
+          minFreq: 30,
+          radial: false,
+          reflexRatio: 0.5,
+          reflexAlpha: 1,
+          roundBars: true,
           showPeaks: false,
-          weightingFilter: "D",
           showScaleX: false,
-          showScaleY: false,
+          smoothing: 0.7,
+          weightingFilter: "D",
+          overlay: true,
+          bgAlpha: 0,
+          minDecibels: -50,
+          outlineBars: true,
         }
       );
     }
@@ -49,5 +61,5 @@ export function RealtimeAudioVisualizer(props: RealtimeAudioVisualizerProps) {
     };
   }, [track]);
 
-  return <div className="rt-audio-visualizer" ref={audioVisualizerRef}></div>;
+  return <div className="h-full w-full" ref={audioVisualizerRef}></div>;
 }

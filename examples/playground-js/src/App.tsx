@@ -1,27 +1,36 @@
-import React from "react";
-import "./App.css";
 import { WebsocketApp } from "./websocket/WebsocketApp";
 import WebRTCApp from "./webrtc/WebRTCApp";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { RealtimeExamples } from "./RealtimeExamples";
+import WebRTCScreenShareApp from "./webrtc-screen-share/WebRTCScreenShareApp";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <RealtimeExamples />,
+  },
+  {
+    path: "/webrtc",
+    element: <WebRTCApp />,
+  },
+  {
+    path: "/websocket",
+    element: <WebsocketApp />,
+  },
+  {
+    path: "/webrtc-screen-share",
+    element: <WebRTCScreenShareApp />,
+  },
+]);
 
 export default function App() {
-  const [screenToShow, setScreenToShow] = React.useState<
-    "selection" | "webrtc" | "websocket"
-  >("selection");
-
-  if (screenToShow === "webrtc") {
-    return <WebRTCApp />;
-  }
-
-  if (screenToShow === "websocket") {
-    return <WebsocketApp />;
-  }
-
   return (
-    <div className="container">
-      <button onClick={() => setScreenToShow("webrtc")}>Webrtc Example</button>
-      <button onClick={() => setScreenToShow("websocket")}>
-        Websocket Example
-      </button>
+    <div className="container h-screen p-4 flex flex-col">
+      <h3 className="font-extrabold">Adapt Playground.</h3>
+      <hr className="mt-4" />
+      <div className="flex justify-center items-center py-4 flex-1">
+        <RouterProvider router={router} />
+      </div>
     </div>
   );
 }

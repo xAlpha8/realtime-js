@@ -1,5 +1,5 @@
 import React from "react";
-import { TRealtimeConfig } from "@adaptai/realtime-react";
+import { RealtimeToast, TRealtimeConfig } from "@adaptai/realtime-react";
 
 import { TakeUserInput } from "./TakeUserInput";
 import { RealtimeApp } from "./RealtimeApp";
@@ -17,6 +17,7 @@ export default function WebRTCApp() {
 
   return (
     <>
+      <RealtimeToast />
       {!config && <TakeUserInput onSubmit={onSubmit} />}
       {config && <RealtimeApp config={config} onDisconnect={onDisconnect} />}
     </>

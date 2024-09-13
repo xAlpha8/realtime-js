@@ -1,69 +1,53 @@
 import React from "react";
 import {
-  useWebRTC,
+  useWebSocket,
+  TRealtimeWebSocketConfig,
   RealtimeChat,
-  TRealtimeConfig,
-  useRealtimeToast,
 } from "@adaptai/realtime-react";
-import { VideoSection } from "./VideoSection";
 import { Loader2 } from "lucide-react";
 import { Button } from "../components/button";
+import { View } from "./View";
 
 export type TRealtimeAppProps = {
   onDisconnect: () => void;
-  config: TRealtimeConfig;
+  config: TRealtimeWebSocketConfig;
 };
 
 export function RealtimeApp(props: TRealtimeAppProps) {
   const { config, onDisconnect } = props;
-  const { toast } = useRealtimeToast();
 
   const {
-    connectionStatus,
     connect,
     disconnect,
     getRemoteAudioTrack,
     getLocalAudioTrack,
-    getRemoteVideoTrack,
-    getLocalVideoTrack,
     dataChannel,
-  } = useWebRTC({ config });
+    connectionStatus,
+  } = useWebSocket({
+    config,
+  });
+
+  const handleDisconnect = React.useCallback(() => {
+    disconnect();
+    onDisconnect();
+  }, [disconnect, onDisconnect]);
 
   React.useEffect(() => {
-    switch (connectionStatus) {
-      case "SetupCompleted":
-        connect();
-        break;
-      case "Disconnected":
-        onDisconnect();
-        break;
-    }
+    connect();
 
-    if (connectionStatus === "Failed") {
-      toast({
-        title: "Connection Status",
-        description: "Failed to connect.",
-        variant: "destructive",
-      });
-    }
-  }, [connectionStatus, connect, onDisconnect, config]);
-
-  function handleDisconnect() {
-    if (connectionStatus === "Connected") {
+    return () => {
       disconnect();
-    }
+    };
+  }, []);
 
-    onDisconnect();
-  }
-
-  if (connectionStatus === "Connecting")
+  if (connectionStatus === "connecting")
     return (
       <div className="h-full flex flex-1 justify-center items-center">
         <Loader2 size={48} className="animate-spin" />
       </div>
     );
 
-  if (connectionStatus === "Failed") {
+  if (connectionStatus === "failed") {
     return (
       <div className="h-full flex flex-1 justify-center items-center">
         <div className="flex items-center space-y-4 flex-col">
@@ -84,10 +68,8 @@ export function RealtimeApp(props: TRealtimeAppProps) {
   return (
     <div className="h-full flex flex-1">
       <div className="flex-1 flex">
-        <VideoSection
+        <View
           onCallEndClick={handleDisconnect}
-          localTrack={getLocalVideoTrack()}
-          remoteTrack={getRemoteVideoTrack()}
           localAudioTrack={getLocalAudioTrack()}
           remoteAudioTrack={getRemoteAudioTrack()}
         />
