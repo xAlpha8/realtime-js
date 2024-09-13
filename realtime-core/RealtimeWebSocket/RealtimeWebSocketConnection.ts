@@ -23,7 +23,6 @@ export class RealtimeWebSocketConnection {
   private readonly _logLabel = "RealtimeWebSocketConnection";
   private readonly _logger: TLogger | undefined;
   private _isConnecting: boolean = false;
-  private _audioRecvCount: number = 0;
 
   socket: WebSocket | null;
   dataChannel: WebSocketDataChannel | null;
@@ -34,8 +33,6 @@ export class RealtimeWebSocketConnection {
   constructor(config: TRealtimeWebSocketConfig) {
     this._config = config;
     this._logger = config.logger;
-    this._audioRecvCount = 0;
-
     this.dataChannel = null;
     this.socket = null;
     this.mediaManager = new RealtimeWebSocketMediaManager(config);
@@ -162,13 +159,9 @@ export class RealtimeWebSocketConnection {
     this._logger?.info(this._logLabel, "Received message", message.type);
 
     if (message.type.startsWith("audio")) {
-      if (message.type === "audio") {
-        this._audioRecvCount += 1;
-      }
 
       this.mediaManager.processAudioPayload({
         ...message,
-        idx: this._audioRecvCount,
       });
     }
   }
@@ -328,7 +321,6 @@ export class RealtimeWebSocketConnection {
       this.mediaManager.disconnect();
 
       this._isConnecting = false;
-      this._audioRecvCount = 0;
       this._logger?.info(this._logLabel, "Disconnected");
 
       return {

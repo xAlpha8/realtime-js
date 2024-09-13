@@ -107,7 +107,6 @@ export class RealtimeWebSocketMediaManager {
     this.audioWorkletNode?.port.postMessage({
       type: "arrayBuffer",
       buffer: arrayBuffer,
-      idx: wsPayload.idx,
     });
   }
 
