@@ -8,12 +8,12 @@ import { Loader2 } from "lucide-react";
 import { Button } from "../components/button";
 import { View } from "./View";
 
-export type TWebsocketProps = {
+export type TRealtimeAppProps = {
   onDisconnect: () => void;
   config: TRealtimeWebSocketConfig;
 };
 
-export function WebsocketContainer(props: TWebsocketProps) {
+export function RealtimeApp(props: TRealtimeAppProps) {
   const { config, onDisconnect } = props;
 
   const {

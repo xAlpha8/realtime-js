@@ -2,7 +2,7 @@ import React from "react";
 import { TRealtimeWebSocketConfig } from "@adaptai/realtime-react";
 
 import { TakeUserInput } from "./TakeUserInput";
-import { Websocket } from "./Websocket";
+import { RealtimeApp } from "./RealtimeApp";
 
 export function WebsocketApp() {
   const [config, setConfig] = React.useState<TRealtimeWebSocketConfig | null>(
@@ -20,7 +20,7 @@ export function WebsocketApp() {
   return (
     <>
       {!config && <TakeUserInput onSubmit={onSubmit} />}
-      {config && <Websocket config={config} onDisconnect={onDisconnect} />}
+      {config && <RealtimeApp config={config} onDisconnect={onDisconnect} />}
     </>
   );
 }
