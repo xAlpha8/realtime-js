@@ -13,7 +13,7 @@ export type TWebsocketProps = {
   config: TRealtimeWebSocketConfig;
 };
 
-export function Websocket(props: TWebsocketProps) {
+export function WebsocketContainer(props: TWebsocketProps) {
   const { config, onDisconnect } = props;
 
   const {
