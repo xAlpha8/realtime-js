@@ -1,6 +1,4 @@
 {
-  "name": "@adaptai/monorepo",
-  "version": "1.0.0",
   "description": "",
   "scripts": {
     "build": "pnpm -r --stream build",
