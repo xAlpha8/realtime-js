@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/**/*.(ts|tsx)", "src/adaptai-global-style.css"],
+  entry: ["src/**/*.(ts|tsx)"],
   dts: true,
   format: ["cjs", "esm"],
   clean: true,

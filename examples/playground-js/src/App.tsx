@@ -3,6 +3,7 @@ import WebRTCApp from "./webrtc/WebRTCApp";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RealtimeExamples } from "./RealtimeExamples";
 import WebRTCScreenShareApp from "./webrtc-screen-share/WebRTCScreenShareApp";
+import "@adaptai/realtime-react/adaptai-global-style.css";
 
 const router = createBrowserRouter([
   {
@@ -13,14 +14,14 @@ const router = createBrowserRouter([
     path: "/webrtc",
     element: <WebRTCApp />,
   },
-  // {
-  //   path: "/websocket",
-  //   element: <WebsocketApp />,
-  // },
-  // {
-  //   path: "/webrtc-screen-share",
-  //   element: <WebRTCScreenShareApp />,
-  // },
+  {
+    path: "/websocket",
+    element: <WebsocketApp />,
+  },
+  {
+    path: "/webrtc-screen-share",
+    element: <WebRTCScreenShareApp />,
+  },
 ]);
 
 export default function App() {

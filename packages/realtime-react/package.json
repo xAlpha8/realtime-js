@@ -5,15 +5,9 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    }
-  },
   "files": [
     "dist/",
-    "dist/adaptai-global-style.css"
+    "adaptai-global-style.css"
   ],
   "scripts": {
     "build": "tsup"
