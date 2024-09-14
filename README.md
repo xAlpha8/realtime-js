@@ -13,7 +13,7 @@ Navigate to an examples directory, and run using `npm run dev`
 # Publishing
 
 ```
-npm i --package-lock-only
-npm run build
-npm publish
+pnpm install
+pnpm build
+pnpm publish
 ```
