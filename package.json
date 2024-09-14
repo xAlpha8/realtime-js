@@ -1,8 +1,7 @@
 {
-  "description": "",
   "scripts": {
     "build": "pnpm -r --stream build",
-    "publish": "pnpm publish -r"
+    "release": "pnpm publish -r"
   },
   "keywords": [],
   "author": ""

@@ -15,5 +15,5 @@ Navigate to an examples directory, and run using `npm run dev`
 ```
 pnpm install
 pnpm build
-pnpm publish
+pnpm release # or pnpm publish -r
 ```
