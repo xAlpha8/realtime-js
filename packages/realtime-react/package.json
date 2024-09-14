@@ -7,10 +7,17 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist/",
-    "adaptai-global-style.css"
+    "adaptai-global-style.css",
+    "LICENSE",
+    "README.md"
   ],
   "scripts": {
     "build": "tsup"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xAlpha8/realtime-js",
+    "directory": "packages/realtime-react"
   },
   "peerDependencies": {
     "react": "^18.2.0",
