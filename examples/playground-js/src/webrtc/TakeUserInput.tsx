@@ -1,14 +1,16 @@
 import React from "react";
 import {
-  TRealtimeConfig,
-  createConfig,
-  ConsoleLogger,
   RealtimeForm,
   RealtimeFunctionURLInput,
   RealtimeAudioInput,
   RealtimeVideoInput,
   RealtimeFormButton,
 } from "@adaptai/realtime-react";
+import {
+  TRealtimeConfig,
+  createConfig,
+  ConsoleLogger,
+} from "@adaptai/realtime-core";
 import { Link } from "react-router-dom";
 import { Button } from "../components/button";
 

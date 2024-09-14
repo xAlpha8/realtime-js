@@ -1,6 +1,6 @@
 import React from "react";
-import { RealtimeToast, TRealtimeConfig } from "@adaptai/realtime-react";
-
+import { RealtimeToast } from "@adaptai/realtime-react";
+import { TRealtimeConfig } from "@adaptai/realtime-core";
 import { TakeUserInput } from "./TakeUserInput";
 import { RealtimeApp } from "./RealtimeApp";
 

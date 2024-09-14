@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-import { DataChannel, isMessageEvent } from "../../realtime-core";
+import { DataChannel, isMessageEvent } from "@adaptai/realtime-core";
 import { useRealtimeToast } from "../hooks";
 
 export type RealtimeChatProps = {

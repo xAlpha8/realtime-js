@@ -2,8 +2,8 @@ import {
   RealtimeAudio,
   RealtimeAudioVisualizer,
   RealtimeConnectionStatus,
-  Track,
 } from "@adaptai/realtime-react";
+import { Track } from "@adaptai/realtime-core";
 import React from "react";
 import { Mic, MicOff, PhoneOff } from "lucide-react";
 import { Button } from "../components/button";

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import AudioMotionAnalyzer from "audiomotion-analyzer";
-import { Track } from "../../realtime-core";
+import { Track } from "@adaptai/realtime-core";
 
 export type RealtimeAudioVisualizerProps = {
   track: Track | null;

@@ -5,7 +5,7 @@ module.exports = {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
     // Need to process realtime-react components too.
-    "../../realtime-react/components/**/*.tsx",
+    "node_modules/@adaptai/realtime-react/**/*.tsx",
   ],
   prefix: "",
   theme: {

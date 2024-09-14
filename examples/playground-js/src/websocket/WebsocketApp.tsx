@@ -1,5 +1,5 @@
 import React from "react";
-import { TRealtimeWebSocketConfig } from "@adaptai/realtime-react";
+import { TRealtimeWebSocketConfig } from "@adaptai/realtime-core";
 
 import { TakeUserInput } from "./TakeUserInput";
 import { RealtimeApp } from "./RealtimeApp";

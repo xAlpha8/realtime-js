@@ -2,9 +2,9 @@ import React from "react";
 import {
   useWebRTC,
   RealtimeChat,
-  TRealtimeConfig,
   useRealtimeToast,
 } from "@adaptai/realtime-react";
+import { TRealtimeConfig } from "@adaptai/realtime-core";
 import { VideoSection } from "./VideoSection";
 import { Loader2 } from "lucide-react";
 import { Button } from "../components/button";

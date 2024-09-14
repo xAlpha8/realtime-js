@@ -1,5 +1,5 @@
 import React from "react";
-import { getAllUserMedia } from "../../realtime-core";
+import { getAllUserMedia } from "@adaptai/realtime-core";
 
 export function useAvailableMediaDevices() {
   const [availableAudioDevices, setAvailableAudioDevices] = React.useState(

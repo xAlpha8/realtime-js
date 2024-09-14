@@ -19,10 +19,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
-    "paths": {
-      "@adaptai/realtime-react": ["../../index.ts"]
-    }
+    "baseUrl": "."
   },
   "include": ["src"]
 }
