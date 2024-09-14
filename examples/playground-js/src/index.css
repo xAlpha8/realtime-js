@@ -1,2 +1,2 @@
 /* Importing adaptai global styles. */
-@import "@adaptai/realtime-react/adaptai-global-style.css"
+@import "node_modules/@adaptai/realtime-react/dist/adaptai-global-style.css"

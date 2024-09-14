@@ -85,7 +85,7 @@ importers:
         version: 8.3.0(eslint@9.9.1)(typescript@5.5.3)
       vite:
         specifier: ^5.4.2
-        version: 5.4.3(@types/node@20.12.12)
+        version: 5.4.3
 
   packages/realtime-core:
     dependencies:
@@ -2094,7 +2094,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.24.7(@babel/core@7.25.2)
       '@types/babel__core': 7.20.5
       react-refresh: 0.14.2
-      vite: 5.4.3(@types/node@20.12.12)
+      vite: 5.4.3
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -4433,6 +4433,44 @@ packages:
       - sugarss
       - supports-color
       - terser
+    dev: true
+
+  /vite@5.4.3:
+    resolution: {integrity: sha512-IH+nl64eq9lJjFqU+/yrRnrHPVTlgy42/+IzbOdaFDVlyLgI/wDlf+FCobXLX1cT0X5+7LMyH1mIy2xJdLfo8Q==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || >=20.0.0
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      sass-embedded: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      sass-embedded:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      esbuild: 0.21.5
+      postcss: 8.4.45
+      rollup: 4.21.2
+    optionalDependencies:
+      fsevents: 2.3.3
     dev: true
 
   /vite@5.4.3(@types/node@20.12.12):

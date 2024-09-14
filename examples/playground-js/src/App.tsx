@@ -13,14 +13,14 @@ const router = createBrowserRouter([
     path: "/webrtc",
     element: <WebRTCApp />,
   },
-  {
-    path: "/websocket",
-    element: <WebsocketApp />,
-  },
-  {
-    path: "/webrtc-screen-share",
-    element: <WebRTCScreenShareApp />,
-  },
+  // {
+  //   path: "/websocket",
+  //   element: <WebsocketApp />,
+  // },
+  // {
+  //   path: "/webrtc-screen-share",
+  //   element: <WebRTCScreenShareApp />,
+  // },
 ]);
 
 export default function App() {
