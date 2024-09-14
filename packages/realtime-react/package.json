@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist/",
-    "adaptai-global-style.css",
+    "style.css",
     "LICENSE",
     "README.md"
   ],

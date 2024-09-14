@@ -3,7 +3,7 @@ import WebRTCApp from "./webrtc/WebRTCApp";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { RealtimeExamples } from "./RealtimeExamples";
 import WebRTCScreenShareApp from "./webrtc-screen-share/WebRTCScreenShareApp";
-import "@adaptai/realtime-react/adaptai-global-style.css";
+import "@adaptai/realtime-react/styles.css";
 
 const router = createBrowserRouter([
   {
