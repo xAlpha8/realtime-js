@@ -1,9 +1,6 @@
 import React from "react";
-import {
-  useWebSocket,
-  TRealtimeWebSocketConfig,
-  RealtimeChat,
-} from "@adaptai/realtime-react";
+import { useWebSocket, RealtimeChat } from "@adaptai/realtime-react";
+import { TRealtimeWebSocketConfig } from "@adaptai/realtime-core";
 import { Loader2 } from "lucide-react";
 import { Button } from "../components/button";
 import { View } from "./View";

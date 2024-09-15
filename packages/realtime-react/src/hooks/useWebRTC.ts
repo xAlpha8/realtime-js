@@ -10,7 +10,7 @@ import {
   WebRTCDataChannel,
   ETrackOrigin,
   ETrackKind,
-} from "../../realtime-core";
+} from "@adaptai/realtime-core";
 
 export type TUseWebRTCReturn<T = unknown> = {
   ok?: boolean;

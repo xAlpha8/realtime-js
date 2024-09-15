@@ -4,10 +4,6 @@ import {
   fromPromise,
   MachineSnapshot,
   StateValue,
-  StateMachine,
-  ProvidedActor,
-  ParameterizedObject,
-  StateSchema,
 } from "xstate";
 import { RealtimeConnection } from "../RealtimeConnection/RealtimeConnection";
 import { TRealtimeConfig } from "../shared/@types";
@@ -195,19 +191,4 @@ export const realtimeConnectionMachine = setup({
       type: "final",
     },
   },
-}) as StateMachine<
-  TRealtimeConnectionMachineContext,
-  TRealtimeConnectionMachineEvents,
-  Record<string, undefined>,
-  ProvidedActor,
-  ParameterizedObject,
-  ParameterizedObject,
-  string,
-  keyof TRealtimeConnectionMachinePossibleState,
-  string,
-  string,
-  string,
-  TRealtimeConnectionMachineEvents,
-  ParameterizedObject,
-  StateSchema
->;
+});

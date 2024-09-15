@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Track } from "../../realtime-core";
+import { Track } from "@adaptai/realtime-core";
 
 export type RealtimeVideoProps = {
   track: Track | null;

@@ -3,7 +3,7 @@ import {
   RealtimeWebSocketConnection,
   Track,
   TRealtimeWebSocketConfig,
-} from "../../realtime-core";
+} from "@adaptai/realtime-core";
 
 export type TUseWebSocketOptions = {
   config: TRealtimeWebSocketConfig;

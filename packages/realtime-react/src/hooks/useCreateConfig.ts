@@ -6,7 +6,7 @@ import {
   TRealtimeConfig,
   TVideoCodec,
   TVideoTransform,
-} from "../../realtime-core";
+} from "@adaptai/realtime-core";
 
 /**
  * The shape of the variables used to create a configuration.

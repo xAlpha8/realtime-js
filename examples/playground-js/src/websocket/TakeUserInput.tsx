@@ -1,12 +1,15 @@
 import React from "react";
 import {
-  TRealtimeWebSocketConfig,
-  ConsoleLogger,
   RealtimeForm,
   RealtimeFunctionURLInput,
   RealtimeAudioInput,
   RealtimeFormButton,
 } from "@adaptai/realtime-react";
+import {
+  TRealtimeWebSocketConfig,
+  ConsoleLogger,
+} from "@adaptai/realtime-core";
+
 import { Link } from "react-router-dom";
 import { Button } from "../components/button";
 
