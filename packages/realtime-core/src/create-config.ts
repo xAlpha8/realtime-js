@@ -39,8 +39,6 @@ export type TCreateConfigInput = {
   rtcConfig?: RTCConfiguration;
   /** Optional logger for logging purposes. */
   logger?: TLogger;
-  /** Optional Transceivers to add */
-  // addTransceivers?: TTransceiver[];
 };
 
 /**
@@ -70,7 +68,6 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
     logger,
     audioDeviceId,
     videoDeviceId,
-    // addTransceivers,
   } = input;
 
   // Ensure that either functionURL or offerURL is provided
@@ -80,6 +77,7 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
 
   let audio: TAudioConfig = false;
   let video: TVideoConfig = false;
+  const addTransceivers: TTransceiver[] = [];
 
   // Combine audio constraints with the provided audio device ID
   if (audioConstraints || audioDeviceId) {
@@ -97,6 +95,36 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
     };
   }
 
+  if (!audio) {
+    /**
+     * If local audio constraints is missing, meaning
+     * we don't want to stream local audio. In this case
+     * to receive any audio track from the backend we need
+     * to add a transceiver for audio.
+     */
+    addTransceivers.push({
+      kind: "audio",
+      options: {
+        direction: "recvonly",
+      },
+    });
+  }
+
+  if (!video) {
+    /**
+     * If local video constraints is missing, meaning
+     * we don't want to add stream local video. In this case
+     * to receive any video track from the backend we need
+     * to add a transceiver for video.
+     */
+    addTransceivers.push({
+      kind: "video",
+      options: {
+        direction: "recvonly",
+      },
+    });
+  }
+
   // Construct the real-time configuration object
   const config: TRealtimeConfig = {
     functionURL,
@@ -111,7 +139,7 @@ export function createConfig(input: TCreateConfigInput): TRealtimeConfig {
     video,
     screen: screenConstraints,
     logger,
-    // addTransceivers,
+    addTransceivers,
   };
 
   // Add codec configurations if provided
