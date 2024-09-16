@@ -110,13 +110,13 @@ export class RealtimeConnectionMediaManager {
       }
     }
 
-    // if (this._config.addTransceivers) {
-    //   setupMediaResponse = this.setupTransceiver(this._config.addTransceivers);
+    if (this._config.addTransceivers) {
+      setupMediaResponse = this.setupTransceiver(this._config.addTransceivers);
 
-    //   if (!setupMediaResponse.ok) {
-    //     this._logger?.warn(this._logLabel, "Unable to add transceiver.");
-    //   }
-    // }
+      if (!setupMediaResponse.ok) {
+        this._logger?.warn(this._logLabel, "Unable to add transceiver.");
+      }
+    }
 
     this._isSetupCompleted = true;
 
@@ -187,6 +187,11 @@ export class RealtimeConnectionMediaManager {
           this._peerConnection.addTransceiver(
             transceiver.kind,
             transceiver.options
+          );
+          this._logger?.info(
+            this._logLabel,
+            "Added transceiver for",
+            transceiver.kind
           );
         });
       }

@@ -142,7 +142,7 @@ export type TRealtimeConfig = {
    *  ]
    * }
    */
-  // addTransceivers?: TTransceiver[];
+  addTransceivers?: TTransceiver[];
 
   /**
    * Configuration for video transformations, such as filters or effects applied to the video stream.
