@@ -8,6 +8,7 @@ import { Track } from "@adaptai/realtime-core";
 import React from "react";
 import { Mic, MicOff, PhoneOff } from "lucide-react";
 import { Button } from "../components/button";
+import "./style.css";
 
 export type TVideoSectionProps = {
   remoteTrack: Track | null;
@@ -80,7 +81,9 @@ export function VideoSection(props: TVideoSectionProps) {
 
   return (
     <div className="flex-1 relative border rounded" ref={containerRef}>
-      <RealtimeVideo track={remoteTrack} />
+      <div className="fix-video h-full flex items-center">
+        <RealtimeVideo track={remoteTrack} />
+      </div>
       <div
         className={
           "uppercase absolute top-2 right-4 font-bold text-sm z-10 " +

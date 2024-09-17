@@ -1,0 +1,3 @@
+.fix-video video {
+  object-fit: contain !important;
+}
