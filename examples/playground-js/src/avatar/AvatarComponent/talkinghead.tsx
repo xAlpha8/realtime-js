@@ -1035,7 +1035,7 @@ class TalkingHead {
   * @return {string[]} Supported view names.
   */
   getViewNames() {
-    console.log(`getViewNames called at ${new Date().toISOString()}`);
+    // IMP: console.log(`getViewNames called at ${new Date().toISOString()}`);
     return ['full', 'mid', 'upper', 'head'];
   }
 
@@ -1044,7 +1044,7 @@ class TalkingHead {
   * @return {string} View name.
   */
   getView() {
-    console.log(`getView called at ${new Date().toISOString()}`);
+    // IMP: console.log(`getView called at ${new Date().toISOString()}`);
     return this.viewName;
   }
 
@@ -1226,7 +1226,7 @@ class TalkingHead {
   * @return {string} Pose as a string
   */
   getPoseString(pose,prec=1000){
-    console.log(`getPoseString function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`getPoseString function called at ${new Date().toISOString()}`);
     let s = '{';
     Object.entries(pose).forEach( (x,i) => {
       const ids = x[0].split('.');
@@ -2390,18 +2390,28 @@ class TalkingHead {
       this.startSpeakingHttp(true);
     }
   }
+  async speakTextHttp(line) {
+    try {
+      this.speechQueue.push(line);
+      // Start speaking (if not already)
+      this.startSpeakingHttp();
+    } catch (error) {
+      console.error('Error in speakTextHttp:', error);
+    }
+  }
 
     /**
   * Take the next queue item from the speech queue, convert it to text, and
   * load the audio file.
   * @param {boolean} [force=false] If true, forces to proceed (e.g. after break)
   */
-    async startSpeakingHttp( line, force = false ) {
+    async startSpeakingHttp(force = false ) {
       if ( !this.armature || (this.isSpeaking && !force) ) return;
       this.stateName = 'talking';
       this.isSpeaking = true;
       // wait for a message otherwise do the idle thing
       if ( this.speechQueue.length ) {
+        let line = this.speechQueue.shift();
         if ( line.emoji ) {
   
           // Look at the camera
@@ -2428,14 +2438,12 @@ class TalkingHead {
           this.playAudioHttp();
   
         } else if ( line.text ) {
-          console.log("[startSpeakingHttp] line.text", line)
           // Look at the camera
           this.lookAtCamera(500);
   
           // Spoken text
           try {
             const data = line.data
-            console.log(data)
   
             // if ( res.ok && data && data.audioContent ) {
             if ( data && data.audioContent ) {
@@ -2529,7 +2537,7 @@ class TalkingHead {
   * Pause speaking.
   */
   pauseSpeaking() {
-    console.log(`pauseSpeaking function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`pauseSpeaking function called at ${new Date().toISOString()}`);
     try { this.audioSpeechSource.stop(); } catch(error) {}
     this.audioPlaylist.length = 0;
     this.stateName = 'idle';
@@ -2546,7 +2554,7 @@ class TalkingHead {
   * Stop speaking and clear the speech queue.
   */
   stopSpeaking() {
-    console.log(`stopSpeaking function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`stopSpeaking function called at ${new Date().toISOString()}`);
     try { this.audioSpeechSource.stop(); } catch(error) {}
     this.audioPlaylist.length = 0;
     this.speechQueue.length = 0;
@@ -2565,7 +2573,7 @@ class TalkingHead {
   * @param {number} t Time in milliseconds
   */
   lookAtCamera(t) {
-    console.log(`lookAtCamera function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`lookAtCamera function called at ${new Date().toISOString()}`);
     this.lookAt( null, null, t );
   }
 
@@ -2576,7 +2584,7 @@ class TalkingHead {
   * @param {number} t Time in milliseconds
   */
   lookAt(x,y,t) {
-    console.log(`lookAt function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`lookAt function called at ${new Date().toISOString()}`);
 
     // Eyes position
     const rect = this.nodeAvatar.getBoundingClientRect();
@@ -2654,7 +2662,7 @@ class TalkingHead {
   * @return {Boolean} If true, (x,y) touch the avatar
   */
   touchAt(x,y) {
-    console.log(`touchAt function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`touchAt function called at ${new Date().toISOString()}`);
 
     const rect = this.nodeAvatar.getBoundingClientRect();
     const pointer = new THREE.Vector2(
@@ -2711,7 +2719,7 @@ class TalkingHead {
   * @param {number} [prob=1] Probability of hand movement
   */
   speakWithHands(delay=0,prob=0.5) {
-    console.log(`speakWithHands function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`speakWithHands function called at ${new Date().toISOString()}`);
 
     // Only if we are standing and not bending and probabilities match up
     if ( this.mixer || this.gesture || !this.poseTarget.template.standing || this.poseTarget.template.bend || Math.random()>prob ) return;
@@ -2781,7 +2789,7 @@ class TalkingHead {
   * @return {numeric} Slowdown factor.
   */
   getSlowdownRate(k) {
-    console.log(`getSlowdownRate function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`getSlowdownRate function called at ${new Date().toISOString()}`);
     return this.animSlowdownRate;
   }
 
@@ -2790,7 +2798,7 @@ class TalkingHead {
   * @param {numeric} k Slowdown factor.
   */
   setSlowdownRate(k) {
-    console.log(`setSlowdownRate function called at ${new Date().toISOString()} with value: ${k}`);
+    // IMP: console.log(`setSlowdownRate function called at ${new Date().toISOString()} with value: ${k}`);
     this.animSlowdownRate = k;
     this.audioSpeechSource.playbackRate.value = 1 / this.animSlowdownRate;
     this.audioBackgroundSource.playbackRate.value = 1 / this.animSlowdownRate;
@@ -2842,7 +2850,7 @@ class TalkingHead {
   * @param {number} [scale=0.01] Position scale factor
   */
   async playAnimation(url, onprogress=null, dur=10, ndx=0, scale=0.01) {
-    console.log(`playAnimation called at ${new Date().toISOString()}`);
+    // IMP: console.log(`playAnimation called at ${new Date().toISOString()}`);
     if ( !this.armature ) return;
 
     let item = this.animClips.find( x => x.url === url+'-'+ndx );
@@ -2966,7 +2974,7 @@ class TalkingHead {
   * @param {number} [scale=0.01] Position scale factor
   */
   async playPose(url, onprogress=null, dur=5, ndx=0, scale=0.01) {
-    console.log(`playPose function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`playPose function called at ${new Date().toISOString()}`);
 
     if ( !this.armature ) return;
 
@@ -3045,7 +3053,7 @@ class TalkingHead {
   * Stop the pose. (Functionality is the same as in stopAnimation.)
   */
   stopPose() {
-    console.log(`stopPose function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`stopPose function called at ${new Date().toISOString()}`);
     this.stopAnimation();
   }
 
@@ -3058,7 +3066,7 @@ class TalkingHead {
   * @param {number} [ms=1000] Transition time in milliseconds
   */
   playGesture(name, dur=3, mirror=false, ms=1000) {
-    console.log(`playGesture function called at ${new Date().toISOString()}`);
+    // IMP: console.log(`playGesture function called at ${new Date().toISOString()}`);
 
     if ( !this.armature ) return;
 
@@ -3142,7 +3150,7 @@ class TalkingHead {
   * @param {number} [ms=1000] Transition time in milliseconds
   */
   stopGesture(ms=1000) {
-    console.log(`stopGesture called with time: ${new Date().toISOString()}ms`);
+    // IMP: console.log(`stopGesture called with time: ${new Date().toISOString()}ms`);
 
     // Stop gesture timer
     if ( this.gestureTimeout ) {

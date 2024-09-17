@@ -17,7 +17,6 @@ export function RealtimeAvatar(props: RealtimeAvatarProps) {
   const [progressValue, setProgressValue] = useState<number>(0)
 
   function sendMessage(msg: string) {
-    console.log(`Called with ${msg}`)
     dataChannel.send({
       type: "message",
       data: msg 
@@ -97,7 +96,9 @@ export function RealtimeAvatar(props: RealtimeAvatarProps) {
         // TODO HERE
         const message = JSON.parse(evt.data);
         if (avatar) {
-          avatar.startSpeakingHttp(message)
+        avatar.speakTextHttp(message)
+        } else {
+          console.log("avatar is null")
         }
       } catch (error) {
         console.error(error);
@@ -108,7 +109,7 @@ export function RealtimeAvatar(props: RealtimeAvatarProps) {
     return () => {
       dataChannel.removeEventListener("message", onMessage);
     };
-  }, [dataChannel]);
+  }, [dataChannel, avatar]);
 
   return (
     <div
