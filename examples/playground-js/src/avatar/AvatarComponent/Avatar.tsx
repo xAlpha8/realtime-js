@@ -42,7 +42,7 @@ export function RealtimeAvatar(props: RealtimeAvatarProps) {
         //   "fi": "Brunetti"
         // }
         {
-          url: "https://models.readyplayer.me/66e7f82164fc839991d89550.glb?morphTargets=ARKit,Oculus+Visemes,mouthOpen,mouthSmile,eyesClosed,eyesLookUp,eyesLookDown&textureSizeLimit=1024&textureFormat=png",
+          url: "https://models.readyplayer.me/6694986c34432ca7edeb2d33.glb?morphTargets=ARKit,Oculus+Visemes,mouthOpen,mouthSmile,eyesClosed,eyesLookUp,eyesLookDown&textureSizeLimit=1024&textureFormat=png",
           body: "F",
           avatarMood: "neutral",
           ttsLang: "en-GB",
@@ -103,7 +103,7 @@ export function RealtimeAvatar(props: RealtimeAvatarProps) {
       id="chat"
       className="h-96 w-96 flex items-center relative border rounded"
     >
-      <div ref={avatarRef} className="h-full w-full" />
+      <div ref={avatarRef} className="h-full w-full bg-gradient-to-br from-blue-100 to-blue-300 rounded-lg" />
       {progressValue !== 100 && (
         <div className="absolute inset-0 flex items-center p-4">
           <img src={image} className="absolute left-0 right-0 bottom-0" />
