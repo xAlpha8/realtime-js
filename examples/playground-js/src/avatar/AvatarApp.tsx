@@ -20,7 +20,7 @@ export function AvatarApp() {
   }
 
   return (
-    <div className="flex flex-col items-center space-y-4 h-full w-full">
+    <div className="flex flex-col items-center justify-center space-y-4 h-full w-full">
       <RealtimeAvatar dataChannel={dataChannel} />
       {!config && <TakeUserInput onSubmit={onSubmit} />}
       {config && (
