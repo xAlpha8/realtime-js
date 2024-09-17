@@ -53,6 +53,18 @@ export function RealtimeExamples() {
         },
       ],
     },
+    {
+      title: "Avatar",
+      description:
+        "In this example, we will establish a WebSocket connection and speak with an Avatar.",
+      link: "/avatar",
+      icons: [
+        {
+          title: "Audio",
+          children: <AudioLinesIcon />,
+        },
+      ],
+    },
   ];
 
   return (
