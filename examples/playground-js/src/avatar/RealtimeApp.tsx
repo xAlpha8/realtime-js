@@ -1,26 +1,25 @@
 import React from "react";
 import { useWebSocket } from "@adaptai/realtime-react";
-import {RealtimeAvatar} from "./AvatarComponent/RealtimeAvatar"
-import { TRealtimeWebSocketConfig } from "@adaptai/realtime-core";
+import { DataChannel, TRealtimeWebSocketConfig } from "@adaptai/realtime-core";
 import { Loader2 } from "lucide-react";
 import { Button } from "../components/button";
-import { View } from "./View";
+import { RealtimeChat } from "./AvatarComponent/Chat";
 
 export type TRealtimeAppProps = {
   onDisconnect: () => void;
   config: TRealtimeWebSocketConfig;
+  onDataChannelUpdate: (dataChannel: DataChannel<unknown>) => void;
 };
 
 export function RealtimeApp(props: TRealtimeAppProps) {
-  const { config, onDisconnect } = props;
+  const { config, onDisconnect, onDataChannelUpdate } = props;
 
   const {
     connect,
     disconnect,
-    getRemoteAudioTrack,
-    getLocalAudioTrack,
     dataChannel,
     connectionStatus,
+    getLocalAudioTrack,
   } = useWebSocket({
     config,
   });
@@ -38,16 +37,22 @@ export function RealtimeApp(props: TRealtimeAppProps) {
     };
   }, []);
 
+  React.useEffect(() => {
+    if (dataChannel) {
+      onDataChannelUpdate(dataChannel);
+    }
+  }, [dataChannel]);
+
   if (connectionStatus === "connecting")
     return (
-      <div className="h-full flex flex-1 justify-center items-center">
+      <div className="max-w-lg h-[352px] space-y-4 py-4 px-8 rounded-md border flex-1 w-full flex justify-center items-center max-h-[352px]">
         <Loader2 size={48} className="animate-spin" />
       </div>
     );
 
   if (connectionStatus === "failed") {
     return (
-      <div className="h-full flex flex-1 justify-center items-center">
+      <div className="max-w-lg h-[352px] space-y-4 py-4 px-8 rounded-md border flex-1 w-full flex justify-center items-center max-h-[352px]">
         <div className="flex items-center space-y-4 flex-col">
           <h2 className="text-3xl font-light">
             Failed to connect. Please try again.
@@ -63,20 +68,20 @@ export function RealtimeApp(props: TRealtimeAppProps) {
     );
   }
 
+  getLocalAudioTrack()?.pause();
+
   return (
-    <div className="h-full flex flex-1">
-      <div className="flex-1 flex">
-        <View
-          onCallEndClick={handleDisconnect}
-          localAudioTrack={getLocalAudioTrack()}
-          remoteAudioTrack={getRemoteAudioTrack()}
-        />
-      </div>
+    <div className="max-w-lg space-y-4 py-4 rounded-md border flex-1 w-full h-[352px] flex flex-col max-h-[352px]">
       {dataChannel && (
-        <div className="w-[350px] px-4 hidden md:block">
-          <RealtimeAvatar dataChannel={dataChannel} />
+        <div className="w-full px-4 hidden md:block mt-auto">
+          <RealtimeChat dataChannel={dataChannel} />
         </div>
       )}
+      <div className="px-4">
+        <Button className="w-full" onClick={handleDisconnect}>
+          Disconnect
+        </Button>
+      </div>
     </div>
   );
 }
